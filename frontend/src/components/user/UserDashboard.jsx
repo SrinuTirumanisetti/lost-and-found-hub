@@ -15,6 +15,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { FaEdit, FaTrash, FaCheckCircle, FaTimesCircle, FaLink } from 'react-icons/fa';
+import { AuthContext } from '../../../src/contexts/AuthContext';
+import { toast } from 'react-toastify';
+
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -91,24 +94,33 @@ const UserDashboard = () => {
   ];
 
   const fetchUserItems = useCallback(async () => {
-    setIsLoading(true);
     try {
-      const userItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/user/items`);
-      const userItemsData = await userItemsResponse.json();
-      setUserItems(userItemsData);
-      setUserLostItems(userItemsData.lostItems || []); // Ensure it's an array
-      setSuccessfulReturns(userItemsData.successfulReturns || []); // Ensure it's an array
-      
-      // Fetch all found items for browsing (public route)
-      const foundItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/items/found`);
+      setIsLoading(true);
+      const [lostItemsRes, foundItemsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/items/user/lost`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }),
+        fetch(`${API_BASE_URL}/api/items/user/found`, {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        }),
+      ]);
 
-      if (!foundItemsResponse.ok) {
-        throw new Error('Failed to fetch found items');
+      if (!lostItemsRes.ok || !foundItemsRes.ok) {
+        throw new Error('Failed to fetch items');
       }
 
-      const foundItemsData = await foundItemsResponse.json();
-      setFoundItems(foundItemsData || []); // Ensure it's an array
+      const lostItemsData = await lostItemsRes.json();
+      const foundItemsData = await foundItemsRes.json();
 
+      setUserLostItems(lostItemsData);
+      setFoundItems(foundItemsData);
+      setSuccessfulReturns(foundItemsData.successfulReturns || []);
+      setIsLoading(false);
+      return { success: true }; // Indicate success for Promise.all
     } catch (error) {
       console.error('Fetch user data error:', error);
       toast({
@@ -116,12 +128,11 @@ const UserDashboard = () => {
         description: error.message || "Failed to load user data",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      throw error; // Re-throw to be caught by Promise.all
     }
-  }, [toast]);
+  }, [toast, user.token]);
 
-  const fetchUserClaims = async () => {
+  const fetchUserClaims = useCallback(async () => {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/api/items/claims`);
 
@@ -136,6 +147,7 @@ const UserDashboard = () => {
         submittedClaims: data.submittedClaims || [],
         receivedClaims: data.receivedClaims || []
       });
+      return { success: true }; // Indicate success for Promise.all
 
     } catch (error) {
       console.error('Fetch claims error:', error);
@@ -144,8 +156,9 @@ const UserDashboard = () => {
         description: "Failed to load claims",
         variant: "destructive",
       });
+      throw error; // Re-throw to be caught by Promise.all
     }
-  };
+  }, [toast]);
 
   const fetchTrendingCategories = useCallback(async () => {
     try {
@@ -157,14 +170,44 @@ const UserDashboard = () => {
 
       const data = await response.json();
       setTrendingCategories(data);
+      return { success: true }; // Indicate success for Promise.all
+
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to load trending categories",
         variant: "destructive",
       });
+      throw error; // Re-throw to be caught by Promise.all
     }
   }, [toast]);
+
+  // New combined loading function
+  const loadDashboardData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        fetchUserItems(),
+        fetchUserClaims(),
+        fetchTrendingCategories()
+      ]);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchUserItems, fetchUserClaims, fetchTrendingCategories, toast]);
+
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user, loadDashboardData]);
 
   const handleClaim = (foundItem) => {
     setSelectedFoundItem(foundItem);
@@ -196,8 +239,7 @@ const UserDashboard = () => {
 
       setShowClaimModal(false);
       setSelectedFoundItem(null);
-      fetchUserItems(); // Refresh items to update claim status display
-      fetchUserClaims(); // Refresh claims to show submitted claim
+      loadDashboardData(); // Refresh items to update claim status display
     } catch (error) {
       toast({
         title: "Error",
@@ -227,8 +269,7 @@ const UserDashboard = () => {
         description: `Claim ${status} successfully`,
       });
 
-      fetchUserItems(); // Refresh items to update status if claim was approved
-      fetchUserClaims(); // Refresh claims list
+      loadDashboardData(); // Refresh items to update status if claim was approved
     } catch (error) {
       toast({
         title: "Error",
@@ -264,7 +305,7 @@ const UserDashboard = () => {
         description: "Lost item marked as found successfully",
       });
 
-      fetchUserItems(); // Refresh the user's items list
+      loadDashboardData(); // Refresh the user's items list
 
     } catch (error) {
       toast({
@@ -276,11 +317,11 @@ const UserDashboard = () => {
   };
 
   if (showReportLost) {
-    return <ReportLostItem onBack={() => setShowReportLost(false)} onSuccess={fetchUserItems} />;
+    return <ReportLostItem onBack={() => setShowReportLost(false)} onSuccess={loadDashboardData} />;
   }
 
   if (showReportFound) {
-    return <ReportFoundItem onBack={() => setShowReportFound(false)} onSuccess={fetchUserItems} />;
+    return <ReportFoundItem onBack={() => setShowReportFound(false)} onSuccess={loadDashboardData} />;
   }
 
   if (isLoading) {
