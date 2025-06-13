@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Package, CheckCircle, AlertCircle, Filter, TrendingUp } from 'lucide-react';
+import { Plus, Search, Package, CheckCircle, AlertCircle, Filter, TrendingUp, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ReportLostItem from './ReportLostItem';
 import ReportFoundItem from './ReportFoundItem';
@@ -71,6 +70,8 @@ const UserDashboard = () => {
   const [dateFilter, setDateFilter] = useState('all');
   const [filteredFoundItems, setFilteredFoundItems] = useState([]);
   const [trendingCategories, setTrendingCategories] = useState([]);
+
+  const [activeSection, setActiveSection] = useState(null); // Change initial state to null
 
   // Add categories array
   const categories = [
@@ -343,17 +344,29 @@ const UserDashboard = () => {
     );
   }
 
+  const sections = [
+    { value: 'lost', title: 'My Lost Items', description: 'Items you\'ve reported as lost' },
+    { value: 'found', title: 'Browse Found Items', description: 'Items others have found - claim if yours' },
+    { value: 'my-found', title: 'My Reported Found Items', description: 'Items you have reported as found' },
+    { value: 'claims', title: 'My Claims', description: 'Track the status of your claims' },
+    { value: 'received-claims', title: 'Received Claims', description: 'Review claims on items you\'ve found' },
+    { value: 'returns', title: 'Successful Returns', description: 'Items that have been successfully returned' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-blue-50">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Lost & Found Hub</h1>
+              <div className="flex items-center">
+                <h1 className="text-3xl font-bold text-gray-900 mr-2">Lost & Found Hub</h1>
+                <Search className="h-8 w-8 text-gray-700" />
+              </div>
               <p className="text-gray-600">Welcome, {user?.name}</p>
             </div>
-            <Button onClick={logout} variant="outline">
-              Logout
+            <Button onClick={logout} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700">
+              <Users className="h-4 w-4 mr-2" /> Logout
             </Button>
           </div>
         </div>
@@ -362,7 +375,7 @@ const UserDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowReportLost(true)}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow hover:bg-red-50" onClick={() => setShowReportLost(true)}>
             <CardContent className="flex items-center p-6">
               <Search className="h-8 w-8 text-red-500 mr-4" />
               <div>
@@ -371,7 +384,7 @@ const UserDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowReportFound(true)}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow hover:bg-green-50" onClick={() => setShowReportFound(true)}>
             <CardContent className="flex items-center p-6">
               <Package className="h-8 w-8 text-green-500 mr-4" />
               <div>
@@ -382,16 +395,32 @@ const UserDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="lost" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="lost">My Lost Items</TabsTrigger>
-            <TabsTrigger value="found">Browse Found Items</TabsTrigger>
-            <TabsTrigger value="claims">My Claims</TabsTrigger>
-            <TabsTrigger value="received-claims">Received Claims</TabsTrigger>
-            <TabsTrigger value="returns">Successful Returns</TabsTrigger>
-          </TabsList>
+        {/* Section Navigation Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {sections.map(section => (
+            <Card
+              key={section.value}
+              className={`cursor-pointer hover:shadow-lg transition-shadow text-white
+                ${section.value === 'lost' && (activeSection === 'lost' ? 'bg-gradient-to-r from-red-400 to-pink-500 border-primary border-2' : 'bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600')}
+                ${section.value === 'found' && (activeSection === 'found' ? 'bg-gradient-to-r from-green-400 to-green-600 border-primary border-2' : 'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700')}
+                ${section.value === 'my-found' && (activeSection === 'my-found' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 border-primary border-2' : 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600')}
+                ${section.value === 'claims' && (activeSection === 'claims' ? 'bg-gradient-to-r from-blue-500 to-purple-600 border-primary border-2' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700')}
+                ${section.value === 'received-claims' && (activeSection === 'received-claims' ? 'bg-gradient-to-r from-red-400 to-pink-500 border-primary border-2' : 'bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600')}
+                ${section.value === 'returns' && (activeSection === 'returns' ? 'bg-gradient-to-r from-green-400 to-green-600 border-primary border-2' : 'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700')}
+              `}
+              onClick={() => setActiveSection(section.value)}
+            >
+              <CardHeader>
+                <CardTitle className="text-lg">{section.title}</CardTitle>
+                <CardDescription className="text-gray-200">{section.description}</CardDescription>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
 
-          <TabsContent value="lost" className="mt-6">
+        {/* Section Content */}
+        {
+          activeSection === 'lost' && (
             <Card>
               <CardHeader>
                 <CardTitle>My Lost Items</CardTitle>
@@ -414,16 +443,15 @@ const UserDashboard = () => {
                           <Badge variant={item.isClaimed ? "default" : "secondary"}>
                             {item.isClaimed ? "Found" : "Still Lost"}
                           </Badge>
-                          {/* Add update status button if item is not yet claimed */}
                           {!item.isClaimed && (
                             <Button
                               size="sm"
                               onClick={() => {
-                                // Update local state immediately
                                 const updatedItems = userLostItems.map(lostItem => 
                                   lostItem._id === item._id ? { ...lostItem, isClaimed: true } : lostItem
                                 );
                                 setUserLostItems(updatedItems);
+                                handleUpdateLostItemStatus(item._id, true); // Call API to update status
                               }}
                               variant="outline"
                             >
@@ -437,9 +465,11 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )
+        }
 
-          <TabsContent value="found" className="mt-6">
+        {
+          activeSection === 'found' && (
             <Card>
               <CardHeader>
                 <CardTitle>Found Items</CardTitle>
@@ -581,9 +611,45 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )
+        }
 
-          <TabsContent value="claims" className="mt-6">
+        {
+          activeSection === 'my-found' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>My Reported Found Items</CardTitle>
+                <CardDescription>Items you have reported as found</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {userItems.foundItems.length === 0 ? (
+                  <p className="text-gray-500">You haven't reported any items as found yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {userItems.foundItems.map(item => (
+                      <div key={item._id} className="flex justify-between items-center p-4 border rounded-lg">
+                        <div>
+                          <h3 className="font-medium">{item.name}</h3>
+                          <p className="text-sm text-gray-500">{item.category}</p>
+                          <p className="text-sm text-gray-500">Found at: {item.locationFound}</p>
+                          <p className="text-sm text-gray-500">Found on: {new Date(item.timeFound).toLocaleString()}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                           <Badge variant={item.isClaimed ? "default" : "secondary"}>
+                            {item.isClaimed ? "Claimed" : "Available"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )
+        }
+
+        {
+          activeSection === 'claims' && (
             <Card>
               <CardHeader>
                 <CardTitle>My Claims</CardTitle>
@@ -650,9 +716,11 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )
+        }
 
-          <TabsContent value="received-claims" className="mt-6">
+        {
+          activeSection === 'received-claims' && (
             <Card>
               <CardHeader>
                 <CardTitle>Received Claims</CardTitle>
@@ -713,9 +781,11 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
+          )
+        }
 
-          <TabsContent value="returns" className="mt-6">
+        {
+          activeSection === 'returns' && (
             <Card>
               <CardHeader>
                 <CardTitle>Successful Returns</CardTitle>
@@ -743,8 +813,8 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          )
+        }
 
         {/* Additional Sections Grid for User Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

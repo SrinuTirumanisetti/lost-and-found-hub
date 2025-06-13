@@ -22,15 +22,7 @@ const AppContent = () => {
     return (
       <div className="container mx-auto p-6">
         <div className="max-w-md mx-auto">
-          {showLogin ? <LoginForm /> : <RegisterForm />}
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setShowLogin(!showLogin)}
-              className="text-sm text-primary hover:underline"
-            >
-              {showLogin ? "Don't have an account? Register" : 'Already have an account? Login'}
-            </button>
-          </div>
+          {showLogin ? <LoginForm setShowLogin={setShowLogin} /> : <RegisterForm setShowLogin={setShowLogin} />}
         </div>
       </div>
     );

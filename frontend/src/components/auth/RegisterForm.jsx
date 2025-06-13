@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
-export function RegisterForm() {
+export function RegisterForm({ setShowLogin }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,6 +14,7 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,6 +48,7 @@ export function RegisterForm() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        confirmPassword: formData.confirmPassword,
         phoneNumber: formData.phoneNumber,
       });
 
@@ -62,6 +65,7 @@ export function RegisterForm() {
           confirmPassword: '',
           phoneNumber: '',
         });
+        setShowLogin(true);
       } else {
         toast({
           title: "Error",
@@ -163,6 +167,12 @@ export function RegisterForm() {
             {isLoading ? 'Registering...' : 'Register'}
           </button>
         </form>
+        <div className="mt-4 text-center text-sm text-gray-600">
+          Already have an account? {' '}
+          <button type="button" onClick={() => setShowLogin(true)} className="font-medium text-indigo-600 hover:text-indigo-500">
+            Login
+          </button>
+        </div>
       </div>
     </div>
   );
