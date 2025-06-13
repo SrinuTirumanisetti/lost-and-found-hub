@@ -16,8 +16,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { FaEdit, FaTrash, FaCheckCircle, FaTimesCircle, FaLink } from 'react-icons/fa';
 import { AuthContext } from '../../../src/contexts/AuthContext';
-import { toast } from 'react-toastify';
-
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
