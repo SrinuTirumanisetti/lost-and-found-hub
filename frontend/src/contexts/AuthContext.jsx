@@ -8,6 +8,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
   useEffect(() => {
     // Check if user is logged in
     const checkAuth = async () => {
@@ -16,7 +18,7 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
           // Verify token with backend
-          const response = await fetch('http://localhost:5000/api/auth/verify', {
+          const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -42,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       // await connectDB(); // Removed
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       // await connectDB(); // Removed
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
