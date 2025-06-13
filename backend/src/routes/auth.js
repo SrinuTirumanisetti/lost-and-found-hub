@@ -8,13 +8,9 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     // Ensure required fields sent by frontend are present
-    const { name, email, phoneNumber, password, confirmPassword } = req.body;
-    if (!name || !email || !phoneNumber || !password) { // Removed confirmPassword from this check
+    const { name, email, phoneNumber, password } = req.body;
+    if (!name || !email || !phoneNumber || !password) {
         return res.status(400).json({ message: 'Please enter all required fields: name, email, phone number, and password' });
-    }
-
-    if (password !== confirmPassword) {
-        return res.status(400).json({ message: 'Passwords do not match' });
     }
 
     // Check if user already exists
@@ -68,7 +64,7 @@ router.post('/login', async (req, res) => {
 
   } catch (error) {
     console.error('Login Error:', error);
-    res.status(400).json({ message: 'Invalid credentials' });
+    res.status(400).json({ message: error.message });
   }
 });
 
