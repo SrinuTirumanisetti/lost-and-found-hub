@@ -9,6 +9,8 @@ import { ArrowLeft, Upload } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 const ReportFoundItem = ({ onBack, onSuccess }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -25,6 +27,7 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
   });
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
     'Electronics', 'Clothing', 'Jewelry', 'Books', 'Keys', 'Wallet/Purse',
@@ -45,8 +48,20 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication required to report item.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       const formDataToSend = new FormData();
       
       // Add all form fields to FormData
@@ -64,10 +79,10 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
         formDataToSend.append('image', image);
       }
 
-      const response = await fetch('http://localhost:5000/api/items/found', {
+      const response = await fetch(`${API_BASE_URL}/api/items/found`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
         body: formDataToSend
       });
@@ -90,6 +105,8 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
         description: error.message || "Failed to report found item",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -306,7 +323,9 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
 
         {/* Submit Button - Span across two columns on medium and larger screens */}
         <div className="md:col-span-2 flex justify-end space-x-4 mt-6">
-          <Button type="submit">Report Found Item</Button>
+          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? 'Reporting...' : 'Report Found Item'}
+          </Button>
           <Button type="button" variant="outline" onClick={onBack}>Cancel</Button>
         </div>
       </div>

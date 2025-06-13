@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { FaEdit, FaTrash, FaCheckCircle, FaTimesCircle, FaLink } from 'react-icons/fa';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Add safe getter utility function
 const safeGet = (obj, path, def = undefined) => {
@@ -84,76 +90,17 @@ const UserDashboard = () => {
     'Other'
   ];
 
-  useEffect(() => {
-    if (user) {
-      fetchUserItems();
-      fetchUserClaims();
-      fetchTrendingCategories();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    filterItems();
-  }, [searchQuery, categoryFilter, dateFilter, foundItems]);
-
-  const filterItems = () => {
-    let filtered = [...foundItems];
-
-    // Search by name, category, or location
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.name.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query) ||
-        item.locationFound.toLowerCase().includes(query)
-      );
-    }
-
-    // Filter by category
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item => item.category === categoryFilter);
-    }
-
-    // Filter by date
-    const now = new Date();
-    if (dateFilter !== 'all') {
-      filtered = filtered.filter(item => {
-        const itemDate = new Date(item.timeFound);
-        switch (dateFilter) {
-          case 'today':
-            return itemDate.toDateString() === now.toDateString();
-          case 'week':
-            const weekAgo = new Date(now.setDate(now.getDate() - 7));
-            return itemDate >= weekAgo;
-          case 'month':
-            const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
-            return itemDate >= monthAgo;
-          default:
-            return true;
-        }
-      });
-    }
-
-    setFilteredFoundItems(filtered);
-  };
-
-  const fetchUserItems = async () => {
+  const fetchUserItems = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch user's lost items and successful returns
-      const userItemsResponse = await fetchWithAuth('http://localhost:5000/api/user/items');
-
-      if (!userItemsResponse.ok) {
-        throw new Error('Failed to fetch user items');
-      }
-
-      const data = await userItemsResponse.json();
-      setUserItems(data);
-      setUserLostItems(data.lostItems || []); // Ensure it's an array
-      setSuccessfulReturns(data.successfulReturns || []); // Ensure it's an array
+      const userItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/user/items`);
+      const userItemsData = await userItemsResponse.json();
+      setUserItems(userItemsData);
+      setUserLostItems(userItemsData.lostItems || []); // Ensure it's an array
+      setSuccessfulReturns(userItemsData.successfulReturns || []); // Ensure it's an array
       
       // Fetch all found items for browsing (public route)
-      const foundItemsResponse = await fetchWithAuth('http://localhost:5000/api/items/found');
+      const foundItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/items/found`);
 
       if (!foundItemsResponse.ok) {
         throw new Error('Failed to fetch found items');
@@ -172,11 +119,11 @@ const UserDashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   const fetchUserClaims = async () => {
     try {
-      const response = await fetchWithAuth('http://localhost:5000/api/items/claims');
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/claims`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch claims');
@@ -200,9 +147,9 @@ const UserDashboard = () => {
     }
   };
 
-  const fetchTrendingCategories = async () => {
+  const fetchTrendingCategories = useCallback(async () => {
     try {
-      const response = await fetchWithAuth('http://localhost:5000/api/items/stats/trending-categories');
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/stats/trending-categories`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch trending categories');
@@ -217,7 +164,7 @@ const UserDashboard = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
   const handleClaim = (foundItem) => {
     setSelectedFoundItem(foundItem);
@@ -226,7 +173,7 @@ const UserDashboard = () => {
 
   const handleClaimSubmit = async (itemId, reason, answer) => {
     try {
-      const response = await fetchWithAuth(`http://localhost:5000/api/items/${itemId}/claim`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/${itemId}/claim`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +209,7 @@ const UserDashboard = () => {
 
   const handleClaimResponse = async (itemId, claimId, status, responseMessage) => {
     try {
-      const response = await fetchWithAuth(`http://localhost:5000/api/items/claims/${claimId}/respond`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/claims/${claimId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -299,7 +246,7 @@ const UserDashboard = () => {
   // Handle updating lost item status
   const handleUpdateLostItemStatus = async (itemId, isClaimed) => {
     try {
-      const response = await fetchWithAuth(`http://localhost:5000/api/user/items/lost/${itemId}`, {
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/user/items/lost/${itemId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -548,7 +495,7 @@ const UserDashboard = () => {
                           {founditems.image && (
                             <div className="aspect-video relative">
                               <img
-                                src={`http://localhost:5000${founditems.image}`}
+                                src={`${API_BASE_URL}${founditems.image}`}
                                 alt={founditems.name}
                                 className="w-full h-full object-cover"
                               />

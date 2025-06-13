@@ -8,6 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const ReportLostItem = ({ onBack, onSuccess }) => {
   const { user } = useAuth();
@@ -22,15 +25,27 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
     contactPhone: '',
     reward: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Fetch user profile data to get contact information
     const fetchUserProfile = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/user/profile', {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          toast({
+            title: "Error",
+            description: "Authentication required to fetch profile.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+            'Authorization': `Bearer ${token}`,
+          },
         });
 
         if (!response.ok) {
@@ -49,6 +64,8 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
           description: "Failed to load contact information. Please update your profile.",
           variant: "destructive",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -64,16 +81,32 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
     e.preventDefault();
     
     try {
-      const response = await fetch('http://localhost:5000/api/items/lost', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Authentication required to report item.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const formDataForUpload = new FormData();
+      formDataForUpload.append('name', formData.name);
+      formDataForUpload.append('category', formData.category);
+      formDataForUpload.append('description', formData.description);
+      formDataForUpload.append('locationLost', formData.locationLost);
+      formDataForUpload.append('timeLost', formData.timeLost);
+      formDataForUpload.append('contactEmail', formData.contactEmail);
+      formDataForUpload.append('contactPhone', formData.contactPhone);
+      formDataForUpload.append('reward', formData.reward);
+
+      const response = await fetch(`${API_BASE_URL}/api/items/lost`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          ...formData,
-          timeLost: new Date(formData.timeLost)
-        }),
+        body: formDataForUpload,
       });
 
       if (!response.ok) {

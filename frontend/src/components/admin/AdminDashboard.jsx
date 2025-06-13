@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Users, Package, CheckCircle, Search, Plus, Edit, Trash, Clock, FileQuestion, TrendingUp, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminDashboard = () => {
   const { logout, user } = useAuth();
@@ -30,11 +33,17 @@ const AdminDashboard = () => {
   }, []);
 
   const fetchStats = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/admin/stats', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      const response = await fetch(`${API_BASE_URL}/api/admin/stats`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -49,15 +58,23 @@ const AdminDashboard = () => {
         description: "Failed to load dashboard statistics",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const loadData = async () => {
+    setIsLoading(true);
     try {
-      const usersResponse = await fetch('http://localhost:5000/api/admin/users', {
-         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
        if (!usersResponse.ok) {
         throw new Error('Failed to fetch users');
@@ -65,10 +82,10 @@ const AdminDashboard = () => {
       const usersData = await usersResponse.json();
       setUsers(usersData);
 
-      const lostItemsResponse = await fetch('http://localhost:5000/api/admin/items/lost', {
-         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const lostItemsResponse = await fetch(`${API_BASE_URL}/api/admin/items/lost`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
        if (!lostItemsResponse.ok) {
         throw new Error('Failed to fetch lost items');
@@ -76,10 +93,10 @@ const AdminDashboard = () => {
       const lostItemsData = await lostItemsResponse.json();
       setLostItems(lostItemsData);
 
-      const foundItemsResponse = await fetch('http://localhost:5000/api/admin/items/found', {
-         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+      const foundItemsResponse = await fetch(`${API_BASE_URL}/api/admin/items/found`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
        if (!foundItemsResponse.ok) {
         throw new Error('Failed to fetch found items');
@@ -99,11 +116,17 @@ const AdminDashboard = () => {
   };
 
   const fetchTrendingCategories = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/admin/stats/trending-categories', {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      const response = await fetch(`${API_BASE_URL}/api/admin/stats/trending-categories`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
@@ -118,16 +141,24 @@ const AdminDashboard = () => {
         description: "Failed to load trending categories",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const deleteUser = async (userId) => {
+    setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error("No token found for user deletion");
+        return { success: false, error: "Authentication required." };
+      }
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
-         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
       });
 
        if (!response.ok) {
@@ -147,6 +178,8 @@ const AdminDashboard = () => {
         description: error.message || "Failed to delete user",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
