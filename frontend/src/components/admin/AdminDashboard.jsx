@@ -64,53 +64,53 @@ const AdminDashboard = () => {
   };
 
   const loadData = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('token');
       if (!token) {
         console.error("No token found");
         return;
       }
-      const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-       if (!usersResponse.ok) {
-        throw new Error('Failed to fetch users');
+
+      const [usersRes, lostItemsRes, foundItemsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }),
+        fetch(`${API_BASE_URL}/api/admin/items/lost`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }),
+        fetch(`${API_BASE_URL}/api/admin/items/found`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+      ]);
+
+      if (!usersRes.ok || !lostItemsRes.ok || !foundItemsRes.ok) {
+        throw new Error('Failed to fetch data');
       }
-      const usersData = await usersResponse.json();
+
+      const [usersData, lostItemsData, foundItemsData] = await Promise.all([
+        usersRes.json(),
+        lostItemsRes.json(),
+        foundItemsRes.json()
+      ]);
+
       setUsers(usersData);
-
-      const lostItemsResponse = await fetch(`${API_BASE_URL}/api/admin/items/lost`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-       if (!lostItemsResponse.ok) {
-        throw new Error('Failed to fetch lost items');
-      }
-      const lostItemsData = await lostItemsResponse.json();
       setLostItems(lostItemsData);
-
-      const foundItemsResponse = await fetch(`${API_BASE_URL}/api/admin/items/found`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-       if (!foundItemsResponse.ok) {
-        throw new Error('Failed to fetch found items');
-      }
-      const foundItemsData = await foundItemsResponse.json();
       setFoundItems(foundItemsData);
-
+      setIsLoading(false);
     } catch (error) {
+      console.error('Error loading data:', error);
       toast({
         title: "Error",
         description: "Failed to load dashboard data",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
