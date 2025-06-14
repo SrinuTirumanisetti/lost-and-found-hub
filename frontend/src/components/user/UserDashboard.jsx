@@ -518,15 +518,6 @@ const UserDashboard = () => {
 
                       return (
                         <Card key={founditems._id} className="overflow-hidden">
-                          {founditems.image && (
-                            <div className="aspect-video relative">
-                              <img
-                                src={`${API_BASE_URL}${founditems.image}`}
-                                alt={founditems.name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
                           <CardHeader>
                             <div className="flex justify-between items-start">
                               <div>

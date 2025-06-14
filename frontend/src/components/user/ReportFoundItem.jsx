@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,26 +25,12 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
     securityQuestion: '',
     reward: ''
   });
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const categories = [
     'Electronics', 'Clothing', 'Jewelry', 'Books', 'Keys', 'Wallet/Purse',
     'Documents', 'Sports Equipment', 'Bags', 'Other'
   ];
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,29 +48,34 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
         return;
       }
 
-      const formDataToSend = new FormData();
-      
-      // Add all form fields to FormData
-      Object.keys(formData).forEach(key => {
-        if (key === 'timeFound') {
-          // Convert the date to ISO string format
-          formDataToSend.append(key, new Date(formData[key]).toISOString());
-        } else {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-
-      // Add image if exists
-      if (image) {
-        formDataToSend.append('image', image);
+      // Validate required fields
+      if (!formData.name || !formData.category || !formData.description || 
+          !formData.locationFound || !formData.timeFound || !formData.contactEmail || 
+          !formData.contactPhone || !formData.securityQuestion) {
+        toast({
+          title: "Error",
+          description: "Please fill in all required fields",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
       }
+
+      // Prepare data for submission
+      const dataToSend = {
+        ...formData,
+        timeFound: new Date(formData.timeFound).toISOString()
+      };
+
+      console.log('Submitting data:', dataToSend); // Debug log
 
       const response = await fetch(`${API_BASE_URL}/api/items/found`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
-        body: formDataToSend
+        body: JSON.stringify(dataToSend)
       });
 
       if (!response.ok) {
@@ -195,11 +186,10 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="timeFound">Date Found <span className="text-red-500">*</span></Label>
-              {/* Assuming timeFound is a date input, adjust type as needed */}
+              <Label htmlFor="timeFound">Date and Time Found <span className="text-red-500">*</span></Label>
               <Input
                 id="timeFound"
-                type="date"
+                type="datetime-local"
                 value={formData.timeFound}
                 onChange={(e) => handleInputChange('timeFound', e.target.value)}
                 required
@@ -235,48 +225,6 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
                 onChange={(e) => handleInputChange('contactPhone', e.target.value)}
                 placeholder="+1 (555) 123-4567"
               />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Photos Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Photos (Optional)</CardTitle>
-            <CardDescription>Upload photos to help identify the item</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="image">Item Image</Label>
-              <div className="flex items-center space-x-4">
-                <div className="flex-1">
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('image').click()}
-                    className="w-full"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Image
-                  </Button>
-                </div>
-                {imagePreview && (
-                  <div className="w-24 h-24 relative">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  </div>
-                )}
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -322,11 +270,10 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
         </Card>
 
         {/* Submit Button - Span across two columns on medium and larger screens */}
-        <div className="md:col-span-2 flex justify-end space-x-4 mt-6">
-          <Button type="submit" onClick={handleSubmit} disabled={isLoading}>
+        <div className="md:col-span-2">
+          <Button type="submit" onClick={handleSubmit} className="w-full" disabled={isLoading}>
             {isLoading ? 'Reporting...' : 'Report Found Item'}
           </Button>
-          <Button type="button" variant="outline" onClick={onBack}>Cancel</Button>
         </div>
       </div>
     </div>

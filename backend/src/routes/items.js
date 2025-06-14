@@ -2,7 +2,6 @@ import express from 'express';
 import { LostItem, FoundItem, Claim, SuccessfulReturn } from '../models/Item.js';
 import auth from '../middleware/auth.js';
 import mongoose from 'mongoose'; // Import mongoose for aggregation
-import upload from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -103,7 +102,7 @@ router.post('/lost', auth, async (req, res) => {
 });
 
 // Report a found item (protected)
-router.post('/found', auth, upload.single('image'), async (req, res) => {
+router.post('/found', auth, async (req, res) => {
   try {
     const { name, category, description, locationFound, timeFound, contactEmail, contactPhone, securityQuestion } = req.body;
 
@@ -135,7 +134,6 @@ router.post('/found', auth, upload.single('image'), async (req, res) => {
       contactPhone,
       securityQuestion,
       isClaimed: false,
-      image: req.file ? `/uploads/${req.file.filename}` : null
     });
 
     const item = await newFoundItem.save();

@@ -48,10 +48,6 @@ const lostItemSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  image: {
-    type: String,
-    default: null
-  }
 });
 
 // Found Item Schema
@@ -101,10 +97,6 @@ const foundItemSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  image: {
-    type: String,
-    default: null
-  }
 });
 
 // Claim Schema
