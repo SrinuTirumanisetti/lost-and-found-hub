@@ -94,29 +94,16 @@ const UserDashboard = () => {
   const fetchUserItems = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [lostItemsRes, foundItemsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/items/user/lost`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }),
-        fetch(`${API_BASE_URL}/api/items/user/found`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        }),
-      ]);
+      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/user/items`);
 
-      if (!lostItemsRes.ok || !foundItemsRes.ok) {
+      if (!response.ok) {
         throw new Error('Failed to fetch items');
       }
 
-      const lostItemsData = await lostItemsRes.json();
-      const foundItemsData = await foundItemsRes.json();
-
-      setUserLostItems(lostItemsData);
-      setFoundItems(foundItemsData);
-      setSuccessfulReturns(foundItemsData.successfulReturns || []);
+      const data = await response.json();
+      setUserLostItems(data.lostItems || []);
+      setFoundItems(data.foundItems || []);
+      setSuccessfulReturns(data.successfulReturns || []);
       setIsLoading(false);
       return { success: true }; // Indicate success for Promise.all
     } catch (error) {
@@ -128,7 +115,7 @@ const UserDashboard = () => {
       });
       throw error; // Re-throw to be caught by Promise.all
     }
-  }, [toast, user.token]);
+  }, [toast]);
 
   const fetchUserClaims = useCallback(async () => {
     try {
