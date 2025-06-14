@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Package, CheckCircle, AlertCircle, Filter, TrendingUp, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, Search, Package, CheckCircle, AlertCircle, Filter, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ReportLostItem from './ReportLostItem';
 import ReportFoundItem from './ReportFoundItem';
@@ -11,11 +12,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { FaEdit, FaTrash, FaCheckCircle, FaTimesCircle, FaLink } from 'react-icons/fa';
-import { AuthContext } from '../../../src/contexts/AuthContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -78,8 +74,6 @@ const UserDashboard = () => {
   const [filteredFoundItems, setFilteredFoundItems] = useState([]);
   const [trendingCategories, setTrendingCategories] = useState([]);
 
-  const [activeSection, setActiveSection] = useState(null); // Change initial state to null
-
   // Add categories array
   const categories = [
     'Electronics',
@@ -91,21 +85,84 @@ const UserDashboard = () => {
     'Other'
   ];
 
-  const fetchUserItems = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/user/items`);
+  useEffect(() => {
+    if (user) {
+      fetchUserItems();
+      fetchUserClaims();
+      fetchTrendingCategories();
+    }
+  }, [user]);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch items');
+  useEffect(() => {
+    filterItems();
+  }, [searchQuery, categoryFilter, dateFilter, foundItems]);
+
+  const filterItems = () => {
+    let filtered = [...foundItems];
+
+    // Search by name, category, or location
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(query) ||
+        item.category.toLowerCase().includes(query) ||
+        item.locationFound.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by category
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(item => item.category === categoryFilter);
+    }
+
+    // Filter by date
+    const now = new Date();
+    if (dateFilter !== 'all') {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item.timeFound);
+        switch (dateFilter) {
+          case 'today':
+            return itemDate.toDateString() === now.toDateString();
+          case 'week':
+            const weekAgo = new Date(now.setDate(now.getDate() - 7));
+            return itemDate >= weekAgo;
+          case 'month':
+            const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+            return itemDate >= monthAgo;
+          default:
+            return true;
+        }
+      });
+    }
+
+    setFilteredFoundItems(filtered);
+  };
+
+  const fetchUserItems = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch user's lost items and successful returns
+      const userItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/user/items`);
+
+      if (!userItemsResponse.ok) {
+        throw new Error('Failed to fetch user items');
       }
 
-      const data = await response.json();
-      setUserLostItems(data.lostItems || []);
-      setFoundItems(data.foundItems || []);
-      setSuccessfulReturns(data.successfulReturns || []);
-      setIsLoading(false);
-      return { success: true }; // Indicate success for Promise.all
+      const data = await userItemsResponse.json();
+      setUserItems(data);
+      setUserLostItems(data.lostItems || []); // Ensure it's an array
+      setSuccessfulReturns(data.successfulReturns || []); // Ensure it's an array
+      
+      // Fetch all found items for browsing (public route)
+      const foundItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/items/found`);
+
+      if (!foundItemsResponse.ok) {
+        throw new Error('Failed to fetch found items');
+      }
+
+      const foundItemsData = await foundItemsResponse.json();
+      setFoundItems(foundItemsData || []); // Ensure it's an array
+
     } catch (error) {
       console.error('Fetch user data error:', error);
       toast({
@@ -113,11 +170,12 @@ const UserDashboard = () => {
         description: error.message || "Failed to load user data",
         variant: "destructive",
       });
-      throw error; // Re-throw to be caught by Promise.all
+    } finally {
+      setIsLoading(false);
     }
-  }, [toast]);
+  };
 
-  const fetchUserClaims = useCallback(async () => {
+  const fetchUserClaims = async () => {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/api/items/claims`);
 
@@ -132,7 +190,6 @@ const UserDashboard = () => {
         submittedClaims: data.submittedClaims || [],
         receivedClaims: data.receivedClaims || []
       });
-      return { success: true }; // Indicate success for Promise.all
 
     } catch (error) {
       console.error('Fetch claims error:', error);
@@ -141,11 +198,10 @@ const UserDashboard = () => {
         description: "Failed to load claims",
         variant: "destructive",
       });
-      throw error; // Re-throw to be caught by Promise.all
     }
-  }, [toast]);
+  };
 
-  const fetchTrendingCategories = useCallback(async () => {
+  const fetchTrendingCategories = async () => {
     try {
       const response = await fetchWithAuth(`${API_BASE_URL}/api/items/stats/trending-categories`);
 
@@ -155,44 +211,14 @@ const UserDashboard = () => {
 
       const data = await response.json();
       setTrendingCategories(data);
-      return { success: true }; // Indicate success for Promise.all
-
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to load trending categories",
         variant: "destructive",
       });
-      throw error; // Re-throw to be caught by Promise.all
     }
-  }, [toast]);
-
-  // New combined loading function
-  const loadDashboardData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await Promise.all([
-        fetchUserItems(),
-        fetchUserClaims(),
-        fetchTrendingCategories()
-      ]);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load dashboard data.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchUserItems, fetchUserClaims, fetchTrendingCategories, toast]);
-
-  useEffect(() => {
-    if (user) {
-      loadDashboardData();
-    }
-  }, [user, loadDashboardData]);
+  };
 
   const handleClaim = (foundItem) => {
     setSelectedFoundItem(foundItem);
@@ -224,7 +250,8 @@ const UserDashboard = () => {
 
       setShowClaimModal(false);
       setSelectedFoundItem(null);
-      loadDashboardData(); // Refresh items to update claim status display
+      fetchUserItems(); // Refresh items to update claim status display
+      fetchUserClaims(); // Refresh claims to show submitted claim
     } catch (error) {
       toast({
         title: "Error",
@@ -254,7 +281,8 @@ const UserDashboard = () => {
         description: `Claim ${status} successfully`,
       });
 
-      loadDashboardData(); // Refresh items to update status if claim was approved
+      fetchUserItems(); // Refresh items to update status if claim was approved
+      fetchUserClaims(); // Refresh claims list
     } catch (error) {
       toast({
         title: "Error",
@@ -290,7 +318,7 @@ const UserDashboard = () => {
         description: "Lost item marked as found successfully",
       });
 
-      loadDashboardData(); // Refresh the user's items list
+      fetchUserItems(); // Refresh the user's items list
 
     } catch (error) {
       toast({
@@ -302,11 +330,11 @@ const UserDashboard = () => {
   };
 
   if (showReportLost) {
-    return <ReportLostItem onBack={() => setShowReportLost(false)} onSuccess={loadDashboardData} />;
+    return <ReportLostItem onBack={() => setShowReportLost(false)} onSuccess={fetchUserItems} />;
   }
 
   if (showReportFound) {
-    return <ReportFoundItem onBack={() => setShowReportFound(false)} onSuccess={loadDashboardData} />;
+    return <ReportFoundItem onBack={() => setShowReportFound(false)} onSuccess={fetchUserItems} />;
   }
 
   if (isLoading) {
@@ -317,29 +345,17 @@ const UserDashboard = () => {
     );
   }
 
-  const sections = [
-    { value: 'lost', title: 'My Lost Items', description: 'Items you\'ve reported as lost' },
-    { value: 'found', title: 'Browse Found Items', description: 'Items others have found - claim if yours' },
-    { value: 'my-found', title: 'My Reported Found Items', description: 'Items you have reported as found' },
-    { value: 'claims', title: 'My Claims', description: 'Track the status of your claims' },
-    { value: 'received-claims', title: 'Received Claims', description: 'Review claims on items you\'ve found' },
-    { value: 'returns', title: 'Successful Returns', description: 'Items that have been successfully returned' },
-  ];
-
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <div className="flex items-center">
-                <h1 className="text-3xl font-bold text-gray-900 mr-2">Lost & Found Hub</h1>
-                <Search className="h-8 w-8 text-gray-700" />
-              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Lost & Found Hub</h1>
               <p className="text-gray-600">Welcome, {user?.name}</p>
             </div>
-            <Button onClick={logout} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700">
-              <Users className="h-4 w-4 mr-2" /> Logout
+            <Button onClick={logout} variant="outline">
+              Logout
             </Button>
           </div>
         </div>
@@ -348,7 +364,7 @@ const UserDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow hover:bg-red-50" onClick={() => setShowReportLost(true)}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowReportLost(true)}>
             <CardContent className="flex items-center p-6">
               <Search className="h-8 w-8 text-red-500 mr-4" />
               <div>
@@ -357,7 +373,7 @@ const UserDashboard = () => {
               </div>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow hover:bg-green-50" onClick={() => setShowReportFound(true)}>
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowReportFound(true)}>
             <CardContent className="flex items-center p-6">
               <Package className="h-8 w-8 text-green-500 mr-4" />
               <div>
@@ -368,32 +384,16 @@ const UserDashboard = () => {
           </Card>
         </div>
 
-        {/* Section Navigation Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {sections.map(section => (
-            <Card
-              key={section.value}
-              className={`cursor-pointer hover:shadow-lg transition-shadow text-white
-                ${section.value === 'lost' && (activeSection === 'lost' ? 'bg-gradient-to-r from-red-400 to-pink-500 border-primary border-2' : 'bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600')}
-                ${section.value === 'found' && (activeSection === 'found' ? 'bg-gradient-to-r from-green-400 to-green-600 border-primary border-2' : 'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700')}
-                ${section.value === 'my-found' && (activeSection === 'my-found' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 border-primary border-2' : 'bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600')}
-                ${section.value === 'claims' && (activeSection === 'claims' ? 'bg-gradient-to-r from-blue-500 to-purple-600 border-primary border-2' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700')}
-                ${section.value === 'received-claims' && (activeSection === 'received-claims' ? 'bg-gradient-to-r from-red-400 to-pink-500 border-primary border-2' : 'bg-gradient-to-r from-red-400 to-pink-500 hover:from-red-500 hover:to-pink-600')}
-                ${section.value === 'returns' && (activeSection === 'returns' ? 'bg-gradient-to-r from-green-400 to-green-600 border-primary border-2' : 'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700')}
-              `}
-              onClick={() => setActiveSection(section.value)}
-            >
-              <CardHeader>
-                <CardTitle className="text-lg">{section.title}</CardTitle>
-                <CardDescription className="text-gray-200">{section.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
+        <Tabs defaultValue="lost" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="lost">My Lost Items</TabsTrigger>
+            <TabsTrigger value="found">Browse Found Items</TabsTrigger>
+            <TabsTrigger value="claims">My Claims</TabsTrigger>
+            <TabsTrigger value="received-claims">Received Claims</TabsTrigger>
+            <TabsTrigger value="returns">Successful Returns</TabsTrigger>
+          </TabsList>
 
-        {/* Section Content */}
-        {
-          activeSection === 'lost' && (
+          <TabsContent value="lost" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>My Lost Items</CardTitle>
@@ -416,10 +416,12 @@ const UserDashboard = () => {
                           <Badge variant={item.isClaimed ? "default" : "secondary"}>
                             {item.isClaimed ? "Found" : "Still Lost"}
                           </Badge>
+                          {/* Add update status button if item is not yet claimed */}
                           {!item.isClaimed && (
                             <Button
                               size="sm"
                               onClick={() => {
+                                // Update local state immediately
                                 const updatedItems = userLostItems.map(lostItem => 
                                   lostItem._id === item._id ? { ...lostItem, isClaimed: true } : lostItem
                                 );
@@ -438,11 +440,9 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          )
-        }
+          </TabsContent>
 
-        {
-          activeSection === 'found' && (
+          <TabsContent value="found" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Found Items</CardTitle>
@@ -584,45 +584,9 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          )
-        }
+          </TabsContent>
 
-        {
-          activeSection === 'my-found' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>My Reported Found Items</CardTitle>
-                <CardDescription>Items you have reported as found</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {userItems.foundItems.length === 0 ? (
-                  <p className="text-gray-500">You haven't reported any items as found yet.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {userItems.foundItems.map(item => (
-                      <div key={item._id} className="flex justify-between items-center p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-gray-500">{item.category}</p>
-                          <p className="text-sm text-gray-500">Found at: {item.locationFound}</p>
-                          <p className="text-sm text-gray-500">Found on: {new Date(item.timeFound).toLocaleString()}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                           <Badge variant={item.isClaimed ? "default" : "secondary"}>
-                            {item.isClaimed ? "Claimed" : "Available"}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )
-        }
-
-        {
-          activeSection === 'claims' && (
+          <TabsContent value="claims" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>My Claims</CardTitle>
@@ -689,11 +653,9 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          )
-        }
+          </TabsContent>
 
-        {
-          activeSection === 'received-claims' && (
+          <TabsContent value="received-claims" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Received Claims</CardTitle>
@@ -754,11 +716,9 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          )
-        }
+          </TabsContent>
 
-        {
-          activeSection === 'returns' && (
+          <TabsContent value="returns" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>Successful Returns</CardTitle>
@@ -786,8 +746,8 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          )
-        }
+          </TabsContent>
+        </Tabs>
 
         {/* Additional Sections Grid for User Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
