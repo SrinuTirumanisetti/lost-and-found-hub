@@ -363,72 +363,77 @@ const UserDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowReportLost(true)}>
-            <CardContent className="flex items-center p-6">
-              <Search className="h-8 w-8 text-red-500 mr-4" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card 
+            className="cursor-pointer hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-red-50 to-orange-50"
+            onClick={() => setShowReportLost(true)}
+          >
+            <CardContent className="flex items-center p-8">
+              <Search className="h-10 w-10 text-red-500 mr-6" />
               <div>
-                <h3 className="font-medium">Report Lost Item</h3>
-                <p className="text-sm text-gray-500">Lost something? Report it here</p>
+                <h3 className="text-xl font-bold mb-2">Report Lost Item</h3>
+                <p className="text-base text-gray-600">Lost something? Report it here</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setShowReportFound(true)}>
-            <CardContent className="flex items-center p-6">
-              <Package className="h-8 w-8 text-green-500 mr-4" />
+          <Card 
+            className="cursor-pointer hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-green-50 to-emerald-50"
+            onClick={() => setShowReportFound(true)}
+          >
+            <CardContent className="flex items-center p-8">
+              <Package className="h-10 w-10 text-green-500 mr-6" />
               <div>
-                <h3 className="font-medium">Report Found Item</h3>
-                <p className="text-sm text-gray-500">Found something? Help return it</p>
+                <h3 className="text-xl font-bold mb-2">Report Found Item</h3>
+                <p className="text-base text-gray-600">Found something? Help return it</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="lost" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="lost">My Lost Items</TabsTrigger>
-            <TabsTrigger value="found">Browse Found Items</TabsTrigger>
-            <TabsTrigger value="claims">My Claims</TabsTrigger>
-            <TabsTrigger value="received-claims">Received Claims</TabsTrigger>
-            <TabsTrigger value="returns">Successful Returns</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 h-14 mb-6">
+            <TabsTrigger value="lost" className="text-base">My Lost Items</TabsTrigger>
+            <TabsTrigger value="found" className="text-base">Browse Found Items</TabsTrigger>
+            <TabsTrigger value="claims" className="text-base">My Claims</TabsTrigger>
+            <TabsTrigger value="received-claims" className="text-base">Received Claims</TabsTrigger>
+            <TabsTrigger value="returns" className="text-base">Successful Returns</TabsTrigger>
           </TabsList>
 
           <TabsContent value="lost" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>My Lost Items</CardTitle>
-                <CardDescription>Items you've reported as lost</CardDescription>
+                <CardTitle className="text-2xl font-bold">My Lost Items</CardTitle>
+                <CardDescription className="text-lg">Items you've reported as lost</CardDescription>
               </CardHeader>
               <CardContent>
                 {userLostItems.length === 0 ? (
-                  <p className="text-gray-500">You haven't reported any lost items yet.</p>
+                  <p className="text-lg text-gray-500 text-center py-8">You haven't reported any lost items yet.</p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {userLostItems.map(item => (
-                      <div key={item._id} className="flex justify-between items-center p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-gray-500">{item.category}</p>
-                          <p className="text-sm text-gray-500">Lost at: {item.locationLost}</p>
-                          <p className="text-sm text-gray-500">Reward: {item.reward}</p>
+                      <div key={item._id} className="flex justify-between items-center p-6 border rounded-lg hover:shadow-lg transition-shadow duration-300">
+                        <div className="space-y-2">
+                          <h3 className="text-xl font-bold">{item.name}</h3>
+                          <p className="text-base text-gray-600">Category: {item.category}</p>
+                          <p className="text-base text-gray-600">Lost at: {item.locationLost}</p>
+                          <p className="text-base text-gray-600">Reward: {item.reward}</p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={item.isClaimed ? "default" : "secondary"}>
+                        <div className="flex items-center space-x-4">
+                          <Badge variant={item.isClaimed ? "default" : "secondary"} className="text-sm px-3 py-1">
                             {item.isClaimed ? "Found" : "Still Lost"}
                           </Badge>
-                          {/* Add update status button if item is not yet claimed */}
                           {!item.isClaimed && (
                             <Button
-                              size="sm"
+                              size="lg"
                               onClick={() => {
-                                // Update local state immediately
                                 const updatedItems = userLostItems.map(lostItem => 
                                   lostItem._id === item._id ? { ...lostItem, isClaimed: true } : lostItem
                                 );
                                 setUserLostItems(updatedItems);
-                                handleUpdateLostItemStatus(item._id, true); // Call API to update status
+                                handleUpdateLostItemStatus(item._id, true);
                               }}
                               variant="outline"
+                              className="h-10"
                             >
                               Mark as Found
                             </Button>
@@ -445,27 +450,27 @@ const UserDashboard = () => {
           <TabsContent value="found" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Found Items</CardTitle>
-                <CardDescription>Items others have found - claim if yours</CardDescription>
+                <CardTitle className="text-2xl font-bold">Found Items</CardTitle>
+                <CardDescription className="text-lg">Items others have found - claim if yours</CardDescription>
               </CardHeader>
               <CardContent>
                 {/* Search and Filter Section */}
-                <div className="space-y-4 mb-6">
+                <div className="space-y-4 mb-8">
                   <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
                       <div className="relative">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                         <Input
                           placeholder="Search by name, category, or location..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-8"
+                          className="pl-10 h-12 text-lg"
                         />
                       </div>
                     </div>
                     <div className="flex gap-4">
                       <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[200px] h-12 text-lg">
                           <SelectValue placeholder="Category" />
                         </SelectTrigger>
                         <SelectContent>
@@ -478,7 +483,7 @@ const UserDashboard = () => {
                         </SelectContent>
                       </Select>
                       <Select value={dateFilter} onValueChange={setDateFilter}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[200px] h-12 text-lg">
                           <SelectValue placeholder="Date" />
                         </SelectTrigger>
                         <SelectContent>
@@ -493,17 +498,17 @@ const UserDashboard = () => {
                 </div>
 
                 {/* Results Count */}
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground">
+                <div className="mb-6">
+                  <p className="text-lg text-muted-foreground">
                     Showing {filteredFoundItems.length} of {foundItems.length} items
                   </p>
                 </div>
 
                 {/* Items List */}
                 {filteredFoundItems.length === 0 ? (
-                  <p className="text-gray-500">No items match your search criteria.</p>
+                  <p className="text-lg text-gray-500 text-center py-8">No items match your search criteria.</p>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredFoundItems.map(founditems => {
                       const hasPendingClaim = userClaims.submittedClaims.some(
                         claim => {
@@ -517,56 +522,53 @@ const UserDashboard = () => {
                       );
 
                       return (
-                        <Card key={founditems._id} className="overflow-hidden">
-                          <CardHeader>
+                        <Card key={founditems._id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
                             <div className="flex justify-between items-start">
                               <div>
-                                <CardTitle className="text-lg">{founditems.name}</CardTitle>
-                                <CardDescription>{founditems.category}</CardDescription>
+                                <CardTitle className="text-xl font-bold mb-2">{founditems.name}</CardTitle>
+                                <CardDescription className="text-base">{founditems.category}</CardDescription>
                               </div>
-                              <Badge variant={founditems.isClaimed ? "secondary" : "default"}>
+                              <Badge variant={founditems.isClaimed ? "default" : "secondary"} className="text-sm px-3 py-1">
                                 {founditems.isClaimed ? "Claimed" : "Available"}
                               </Badge>
                             </div>
                           </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div>
-                                <p className="text-sm text-gray-600 mb-2">{founditems.description}</p>
-                                <div className="space-y-1 text-sm">
-                                  <p><strong>Location:</strong> {founditems.locationFound}</p>
-                                  <p><strong>Found:</strong> {new Date(founditems.timeFound).toLocaleString()}</p>
-                                </div>
-                              </div>
-
-                              <div className="space-y-2">
-                                <h4 className="font-medium text-sm">Security Question:</h4>
-                                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                                  {founditems.securityQuestion}
-                                </p>
-                              </div>
-
-                              {getUserId(founditems.userId) !== String(user?._id) && !founditems.isClaimed && !hasPendingClaim && (
-                                <Button
-                                  onClick={() => handleClaim(founditems)}
-                                  className="w-full"
-                                >
-                                  Claim This Item
-                                </Button>
-                              )}
-
-                              {getUserId(founditems.userId) !== String(user?._id) && (founditems.isClaimed || hasPendingClaim) && (
-                                <p className="text-sm text-gray-500 font-medium text-center">
-                                  {founditems.isClaimed ? 'Claimed by someone' : 'Claim Submitted'}
-                                </p>
-                              )}
-
-                              {getUserId(founditems.userId) === String(user?._id) && (
-                                <p className="text-sm text-gray-500 font-medium text-center">
-                                  You Reported This
+                          <CardContent className="p-6 space-y-4">
+                            <div className="space-y-2">
+                              <p className="text-base">
+                                <span className="font-semibold">Location:</span> {founditems.locationFound}
+                              </p>
+                              <p className="text-base">
+                                <span className="font-semibold">Date Found:</span> {new Date(founditems.timeFound).toLocaleDateString()}
+                              </p>
+                              {founditems.description && (
+                                <p className="text-base">
+                                  <span className="font-semibold">Description:</span> {founditems.description}
                                 </p>
                               )}
                             </div>
+
+                            {getUserId(founditems.userId) !== String(user?._id) && !founditems.isClaimed && !hasPendingClaim && (
+                              <Button
+                                onClick={() => handleClaim(founditems)}
+                                className="w-full h-12 text-lg font-semibold"
+                              >
+                                Claim This Item
+                              </Button>
+                            )}
+
+                            {getUserId(founditems.userId) !== String(user?._id) && (founditems.isClaimed || hasPendingClaim) && (
+                              <p className="text-base text-gray-500 font-medium text-center py-2">
+                                {founditems.isClaimed ? 'Claimed by someone' : 'Claim Submitted'}
+                              </p>
+                            )}
+
+                            {getUserId(founditems.userId) === String(user?._id) && (
+                              <p className="text-base text-gray-500 font-medium text-center py-2">
+                                You Reported This
+                              </p>
+                            )}
                           </CardContent>
                         </Card>
                       );
@@ -580,66 +582,61 @@ const UserDashboard = () => {
           <TabsContent value="claims" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>My Claims</CardTitle>
-                <CardDescription>Track the status of your claims</CardDescription>
+                <CardTitle className="text-2xl font-bold">My Claims</CardTitle>
+                <CardDescription className="text-lg">Track the status of your claims</CardDescription>
               </CardHeader>
               <CardContent>
                 {userClaims.submittedClaims.length === 0 ? (
-                  <p className="text-gray-500">You haven't submitted any claims yet.</p>
+                  <p className="text-lg text-gray-500 text-center py-8">You haven't submitted any claims yet.</p>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {userClaims.submittedClaims.map(claim => (
-                      <div key={claim._id} className="p-4 border rounded-lg space-y-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <h3 className="font-medium">Claim for: {claim.foundItemId?.name}</h3>
-                              <p className="text-sm text-gray-500">Category: {claim.foundItemId?.category}</p>
-                              <p className="text-sm text-gray-500">Found at: {claim.foundItemId?.locationFound}</p>
-                            </div>
-                            <Badge variant={
-                              claim.status === 'accepted' ? 'success' :
-                              claim.status === 'rejected' ? 'destructive' :
-                              'secondary'
-                            }>
-                              {claim.status || 'pending'}
-                            </Badge>
+                      <div key={claim._id} className="p-6 border rounded-lg hover:shadow-lg transition-shadow duration-300 space-y-4">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-2">
+                            <h3 className="text-xl font-bold">Claim for: {claim.foundItemId?.name}</h3>
+                            <p className="text-base text-gray-600">Category: {claim.foundItemId?.category}</p>
+                            <p className="text-base text-gray-600">Found at: {claim.foundItemId?.locationFound}</p>
                           </div>
-                          
-                          {/* Display Item Description */}
-                          {claim.foundItemId?.description && (
-                            <div className="space-y-2">
-                              <h4 className="font-medium text-sm">Item Description:</h4>
-                              <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                                {claim.foundItemId.description}
-                              </p>
-                            </div>
-                          )}
-
-                          <div className="text-sm text-gray-700">
-                            <p><strong>Claimant:</strong> {claim.claimantId?.name}</p>
-                            <p><strong>Your Answer:</strong> {claim.answer}</p>
-                            {claim.responseMessage && (
-                              <p><strong>Response:</strong> {claim.responseMessage}</p>
-                            )}
-                             {/* Display Your Reason if it exists and is not empty*/}
-                            {claim.reason && <p><strong>Your Reason:</strong> {claim.reason}</p>}
-                          </div>
-
-                          {/* Display reporter contact info and message if claim is accepted */}
-                          {claim.status === 'accepted' && claim.foundItemId?.contactEmail && claim.foundItemId?.contactPhone && (
-                              <div className="bg-green-50 border-green-200 p-3 rounded-md space-y-2 text-sm text-green-800">
-                                  <h4 className="font-medium">Claim Accepted!</h4>
-                                  <p>The item reporter has accepted your claim.</p>
-                                  <p><strong>Contact the reporter to arrange the return:</strong></p>
-                                  <p>Email: {claim.foundItemId.contactEmail}</p>
-                                  <p>Phone: {claim.foundItemId.contactPhone}</p>
-                                  <p className="mt-2">Please contact them to arrange how you will receive your item. You might need to ask them to post it to your address.</p>
-                              </div>
-                          )}
-
+                          <Badge variant={
+                            claim.status === 'accepted' ? 'success' :
+                            claim.status === 'rejected' ? 'destructive' :
+                            'secondary'
+                          } className="text-sm px-3 py-1">
+                            {claim.status || 'pending'}
+                          </Badge>
                         </div>
-                      )
-                    )}
+                        
+                        {claim.foundItemId?.description && (
+                          <div className="space-y-2">
+                            <h4 className="text-lg font-semibold">Item Description:</h4>
+                            <p className="text-base text-gray-700 bg-gray-50 p-4 rounded-lg">
+                              {claim.foundItemId.description}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="text-base text-gray-700 space-y-2">
+                          <p><span className="font-semibold">Claimant:</span> {claim.claimantId?.name}</p>
+                          <p><span className="font-semibold">Your Answer:</span> {claim.answer}</p>
+                          {claim.responseMessage && (
+                            <p><span className="font-semibold">Response:</span> {claim.responseMessage}</p>
+                          )}
+                          {claim.reason && <p><span className="font-semibold">Your Reason:</span> {claim.reason}</p>}
+                        </div>
+
+                        {claim.status === 'accepted' && claim.foundItemId?.contactEmail && claim.foundItemId?.contactPhone && (
+                          <div className="bg-green-50 border-green-200 p-4 rounded-lg space-y-3 text-base text-green-800">
+                            <h4 className="font-bold text-lg">Claim Accepted!</h4>
+                            <p>The item reporter has accepted your claim.</p>
+                            <p><span className="font-semibold">Contact the reporter to arrange the return:</span></p>
+                            <p>Email: {claim.foundItemId.contactEmail}</p>
+                            <p>Phone: {claim.foundItemId.contactPhone}</p>
+                            <p className="mt-2">Please contact them to arrange how you will receive your item. You might need to ask them to post it to your address.</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
