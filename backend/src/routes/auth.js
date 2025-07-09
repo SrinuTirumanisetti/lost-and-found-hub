@@ -1,6 +1,7 @@
 import express from 'express';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
@@ -13,10 +14,16 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'Please enter all required fields: name, email, phone number, and password' });
     }
 
-    // Check if user already exists
+    // Check if user already exists by email
     let user = await User.findOne({ email });
     if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'A user with this email already exists.' });
+    }
+
+    // Check if user already exists by phone number
+    user = await User.findOne({ phoneNumber });
+    if (user) {
+      return res.status(400).json({ message: 'A user with this phone number already exists.' });
     }
 
     // Create new user instance (password hashing is done in pre-save hook)

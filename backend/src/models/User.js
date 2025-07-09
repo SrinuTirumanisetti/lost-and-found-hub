@@ -14,11 +14,34 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
+    validate: {
+      validator: function(v) {
+        // Username: letters, digits, ., _, -, +; not start/end with dot, no consecutive dots
+        // @ required once
+        // Domain: at least one dot, letters/digits/hyphens, not start/end with dot/hyphen
+        // TLD at least 2 chars
+        return /^([a-zA-Z0-9_\-+]+(\.[a-zA-Z0-9_\-+]+)*)@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/.test(v) &&
+          !/^\./.test(v.split('@')[0]) &&
+          !/\.$/.test(v.split('@')[0]) &&
+          !/\.\./.test(v.split('@')[0]) &&
+          !/^[-.]/.test(v.split('@')[1]) &&
+          !/[-.]$/.test(v.split('@')[1]);
+      },
+      message: 'Email is not valid according to the required rules.'
+    }
   },
   phoneNumber: {
     type: String,
-    required: true,
     trim: true,
+    validate: {
+      validator: function(v) {
+        // Only validate during registration (if this.isNew)
+        if (!this.isNew) return true;
+        if (!v) return false;
+        return /^\d{10}$/.test(v);
+      },
+      message: 'Phone number should be a 10 digit Indian number.'
+    }
   },
   password: {
     type: String,
