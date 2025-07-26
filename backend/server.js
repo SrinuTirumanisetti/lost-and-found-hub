@@ -49,7 +49,24 @@ connectDB().then(() => {
 
 const app = express();
 
-app.use(cors());
+// Configure CORS with specific options
+const corsOptions = {
+  origin: [
+    'https://lost-and-found-hub-hrk7.vercel.app',
+    'http://localhost:3000' // Keep local development support
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
+};
+
+// Apply CORS with the specified options
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
