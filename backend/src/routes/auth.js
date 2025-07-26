@@ -57,21 +57,55 @@ router.post('/register', async (req, res) => {
 
 // Login User
 router.post('/login', async (req, res) => {
+  const startTime = Date.now();
+  console.log('Login request received for email:', req.body.email);
+  
   try {
     const { email, password } = req.body;
+    
+    if (!email || !password) {
+      console.log('Login failed: Missing email or password');
+      return res.status(400).json({ message: 'Please provide both email and password' });
+    }
 
-    // Find user by email and check password using static method
-    const user = await User.findByCredentials(email, password);
+    console.log('Looking up user in database...');
+    const user = await User.findOne({ email }).select('+password');
+    
+    if (!user) {
+      console.log('Login failed: User not found');
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
 
-    // Generate JWT token using instance method
+    console.log('User found, verifying password...');
+    const isMatch = await bcrypt.compare(password, user.password);
+    
+    if (!isMatch) {
+      console.log('Login failed: Invalid password');
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    console.log('Password verified, generating token...');
     const token = await user.generateAuthToken();
-
-    // Send back the user object (excluding password and tokens) and the token
-    res.json({ user, token });
+    
+    // Remove password from response
+    const userObject = user.toObject();
+    delete userObject.password;
+    delete userObject.tokens;
+    
+    console.log('Login successful, returning response');
+    console.log('Total login time:', Date.now() - startTime, 'ms');
+    
+    res.json({ 
+      user: userObject, 
+      token 
+    });
 
   } catch (error) {
-    console.error('Login Error:', error);
-    res.status(400).json({ message: error.message });
+    console.error('Login Error after', Date.now() - startTime, 'ms:', error);
+    res.status(500).json({ 
+      message: 'An error occurred during login',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

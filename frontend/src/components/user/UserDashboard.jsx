@@ -87,82 +87,107 @@ const UserDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      fetchUserItems();
-      fetchUserClaims();
-      fetchTrendingCategories();
+      const loadData = async () => {
+        try {
+          setIsLoading(true);
+          // Run these in parallel but wait for all to complete
+          await Promise.all([
+            fetchUserItems(),
+            fetchUserClaims(),
+            fetchTrendingCategories()
+          ]);
+        } catch (error) {
+          console.error('Error loading dashboard data:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load dashboard data. Please refresh the page.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadData();
     }
   }, [user]);
 
-  useEffect(() => {
-    filterItems();
-  }, [searchQuery, categoryFilter, dateFilter, foundItems]);
-
-  const filterItems = () => {
-    let filtered = [...foundItems];
-
-    // Search by name, category, or location
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => 
+  // Memoize the filter function to prevent unnecessary re-renders
+  const filterItems = React.useCallback(() => {
+    const query = searchQuery.toLowerCase();
+    const now = new Date();
+    
+    return foundItems.filter(item => {
+      // Search filter
+      if (searchQuery && !(
         item.name.toLowerCase().includes(query) ||
         item.category.toLowerCase().includes(query) ||
         item.locationFound.toLowerCase().includes(query)
-      );
-    }
-
-    // Filter by category
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item => item.category === categoryFilter);
-    }
-
-    // Filter by date
-    const now = new Date();
-    if (dateFilter !== 'all') {
-      filtered = filtered.filter(item => {
+      )) {
+        return false;
+      }
+      
+      // Category filter
+      if (categoryFilter !== 'all' && item.category !== categoryFilter) {
+        return false;
+      }
+      
+      // Date filter
+      if (dateFilter !== 'all') {
         const itemDate = new Date(item.timeFound);
         switch (dateFilter) {
           case 'today':
             return itemDate.toDateString() === now.toDateString();
           case 'week':
-            const weekAgo = new Date(now.setDate(now.getDate() - 7));
+            const weekAgo = new Date();
+            weekAgo.setDate(now.getDate() - 7);
             return itemDate >= weekAgo;
           case 'month':
-            const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+            const monthAgo = new Date();
+            monthAgo.setMonth(now.getMonth() - 1);
             return itemDate >= monthAgo;
           default:
             return true;
         }
-      });
-    }
-
+      }
+      
+      return true;
+    });
+  }, [searchQuery, categoryFilter, dateFilter, foundItems]);
+  
+  // Update filtered items when dependencies change
+  useEffect(() => {
+    const filtered = filterItems();
     setFilteredFoundItems(filtered);
-  };
+  }, [filterItems]);
 
   const fetchUserItems = async () => {
-    setIsLoading(true);
     try {
-      // Fetch user's lost items and successful returns
-      const userItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/user/items`);
+      // Fetch user's lost items and successful returns in parallel with found items
+      const [userItemsResponse, foundItemsResponse] = await Promise.all([
+        fetchWithAuth(`${API_BASE_URL}/api/user/items`),
+        fetchWithAuth(`${API_BASE_URL}/api/items/found`)
+      ]);
 
       if (!userItemsResponse.ok) {
         throw new Error('Failed to fetch user items');
       }
-
-      const data = await userItemsResponse.json();
-      setUserItems(data);
-      setUserLostItems(data.lostItems || []); // Ensure it's an array
-      setSuccessfulReturns(data.successfulReturns || []); // Ensure it's an array
-      
-      // Fetch all found items for browsing (public route)
-      const foundItemsResponse = await fetchWithAuth(`${API_BASE_URL}/api/items/found`);
-
       if (!foundItemsResponse.ok) {
         throw new Error('Failed to fetch found items');
       }
 
-      const foundItemsData = await foundItemsResponse.json();
-      setFoundItems(foundItemsData || []); // Ensure it's an array
+      const [userData, foundItemsData] = await Promise.all([
+        userItemsResponse.json(),
+        foundItemsResponse.json()
+      ]);
 
+      // Batch state updates
+      setUserItems(userData);
+      setUserLostItems(userData.lostItems || []);
+      setSuccessfulReturns(userData.successfulReturns || []);
+      setFoundItems(foundItemsData || []);
+
+      return true;
     } catch (error) {
       console.error('Fetch user data error:', error);
       toast({
@@ -170,8 +195,7 @@ const UserDashboard = () => {
         description: error.message || "Failed to load user data",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      throw error; // Re-throw to be caught by the parent try-catch
     }
   };
 
@@ -184,20 +208,21 @@ const UserDashboard = () => {
       }
 
       const data = await response.json();
-      console.log('Claims data received:', data); // Debug log
 
       setUserClaims({
         submittedClaims: data.submittedClaims || [],
         receivedClaims: data.receivedClaims || []
       });
 
+      return true;
     } catch (error) {
       console.error('Fetch claims error:', error);
       toast({
         title: "Error",
-        description: "Failed to load claims",
+        description: error.message || "Failed to load claims",
         variant: "destructive",
       });
+      throw error; // Re-throw to be caught by the parent try-catch
     }
   };
 
@@ -211,12 +236,11 @@ const UserDashboard = () => {
 
       const data = await response.json();
       setTrendingCategories(data);
+      return true;
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load trending categories",
-        variant: "destructive",
-      });
+      console.error('Fetch trending categories error:', error);
+      // Don't show error toast for non-critical data
+      return false;
     }
   };
 
@@ -263,26 +287,69 @@ const UserDashboard = () => {
 
   const handleClaimResponse = async (itemId, claimId, status, responseMessage) => {
     try {
+      if (!itemId || !claimId) {
+        throw new Error('Missing required item or claim ID');
+      }
+
+      // Use the same status value for both frontend and backend
+      const backendStatus = status; // 'accepted' or 'rejected'
+      
+      // Optimistically update the UI
+      setUserClaims(prevClaims => ({
+        ...prevClaims,
+        receivedClaims: prevClaims.receivedClaims.map(claim => 
+          claim._id === claimId 
+            ? { 
+                ...claim, 
+                status: status, // 'accepted' or 'rejected'
+                responseMessage, 
+                updatedAt: new Date().toISOString() 
+              } 
+            : claim
+        )
+      }));
+
+      console.log('Sending claim response:', { claimId, status, backendStatus });
       const response = await fetchWithAuth(`${API_BASE_URL}/api/items/claims/${claimId}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ status, responseMessage })
+        body: JSON.stringify({ 
+          status: backendStatus,
+          responseMessage 
+        })
       });
 
       if (!response.ok) {
+        // Revert optimistic update on error
+        fetchUserClaims();
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to respond to claim');
       }
 
+      const data = await response.json();
+      
+      // Update the item status if claim was accepted
+      if (status === 'accepted') {
+        setFoundItems(prevItems => 
+          prevItems.map(item => 
+            item._id === itemId ? { ...item, isClaimed: true } : item
+          )
+        );
+      }
+
+      // Show success message
       toast({
-        title: "Success",
-        description: `Claim ${status} successfully`,
+        title: 'Success',
+        description: `Claim ${status === 'accepted' ? 'accepted' : 'rejected'} successfully`,
       });
 
-      fetchUserItems(); // Refresh items to update status if claim was approved
-      fetchUserClaims(); // Refresh claims list
+      // Refresh data to ensure consistency
+      await Promise.all([
+        fetchUserItems(),
+        fetchUserClaims()
+      ]);
     } catch (error) {
       toast({
         title: "Error",
@@ -835,17 +902,17 @@ const UserDashboard = () => {
                             </div>
                             <Badge 
                               variant={
-                                claim.status === 'approved' ? 'success' :
+                                claim.status === 'accepted' ? 'success' :
                                 claim.status === 'rejected' ? 'destructive' :
                                 'secondary'
                               }
                               className={`px-4 py-2 text-sm font-medium ${
-                                claim.status === 'approved' ? 'bg-green-100 text-green-800 border-green-200' :
+                                claim.status === 'accepted' ? 'bg-green-100 text-green-800 border-green-200' :
                                 claim.status === 'rejected' ? 'bg-red-100 text-red-800 border-red-200' :
                                 'bg-yellow-100 text-yellow-800 border-yellow-200'
                               }`}
                             >
-                              {claim.status === 'approved' ? '✓ Approved' :
+                              {claim.status === 'accepted' ? '✓ Accepted' :
                                claim.status === 'rejected' ? '✗ Rejected' :
                                '⏳ Pending'}
                             </Badge>

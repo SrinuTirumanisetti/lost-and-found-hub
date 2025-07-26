@@ -42,8 +42,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    console.log('Attempting login with API URL:', API_BASE_URL);
+    const startTime = Date.now();
+    
     try {
-      // await connectDB(); // Removed
+      console.log('Sending login request...');
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -51,19 +54,26 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ email, password }),
       });
+      
+      console.log('Login response received after', Date.now() - startTime, 'ms');
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Login failed with status:', response.status, 'Error:', errorData);
+        throw new Error(errorData.message || `Login failed with status ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Login successful, received token');
       localStorage.setItem('token', data.token);
       setUser(data.user);
       return { success: true };
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, error: error.message };
+      console.error('Login error after', Date.now() - startTime, 'ms:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Failed to connect to the server. Please try again later.' 
+      };
     }
   };
 
