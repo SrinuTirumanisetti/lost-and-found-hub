@@ -1,14 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 // import connectDB from '@/lib/db'; // Removed
 // import User from '@/models/User'; // Removed
 
 const AuthContext = createContext(null);
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     // Check if user is logged in
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     console.log('Attempting login with API URL:', API_BASE_URL);
     const startTime = Date.now();
     
@@ -75,9 +75,9 @@ export const AuthProvider = ({ children }) => {
         error: error.message || 'Failed to connect to the server. Please try again later.' 
       };
     }
-  };
+  }, []);
 
-  const register = async (userData) => {
+  const register = useCallback(async (userData) => {
     try {
       // await connectDB(); // Removed
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
@@ -99,15 +99,19 @@ export const AuthProvider = ({ children }) => {
       console.error('Registration error:', error);
       return { success: false, error: error.message };
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
-  };
+  }, []);
+
+  const value = useMemo(() => ({
+    user, loading, login, register, logout
+  }), [user, loading, login, register, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

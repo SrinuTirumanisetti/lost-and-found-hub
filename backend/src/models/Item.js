@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-console.log('Loading Item.js model file - Version Check!');
 
 // Lost Item Schema
 const lostItemSchema = new mongoose.Schema({
