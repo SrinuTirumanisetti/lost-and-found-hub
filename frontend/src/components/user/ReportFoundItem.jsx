@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, Calendar, Lock, FileText, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,12 +20,43 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
     description: '',
     locationFound: '',
     timeFound: '',
-    contactEmail: user?.email || '',
-    contactPhone: user?.phoneNumber || '',
-    securityQuestion: '',
-    reward: ''
+    contactEmail: '',
+    contactPhone: '',
+    securityQuestion: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch user profile data to get contact information
+    const fetchUserProfile = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setFormData(prev => ({
+            ...prev,
+            contactEmail: userData.email || '',
+            contactPhone: userData.phoneNumber || ''
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to pre-fill user data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const categories = [
     'Electronics', 'Clothing', 'Jewelry', 'Books', 'Keys', 'Wallet/Purse',
@@ -41,41 +72,29 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
       if (!token) {
         toast({
           title: "Error",
-          description: "Authentication required to report item.",
+          description: "Authentication required.",
           variant: "destructive",
         });
-        setIsLoading(false);
         return;
       }
 
-      // Validate required fields
-      if (!formData.name || !formData.category || !formData.description || 
-          !formData.locationFound || !formData.timeFound || !formData.contactEmail || 
-          !formData.contactPhone || !formData.securityQuestion) {
-        toast({
-          title: "Error",
-          description: "Please fill in all required fields",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Prepare data for submission
-      const dataToSend = {
-        ...formData,
-        timeFound: new Date(formData.timeFound).toISOString()
-      };
-
-      console.log('Submitting data:', dataToSend); // Debug log
-
+      // Found Item uses JSON body as per backend route
       const response = await fetch(`${API_BASE_URL}/api/items/found`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(dataToSend)
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          description: formData.description,
+          locationFound: formData.locationFound,
+          timeFound: formData.timeFound,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone,
+          securityQuestion: formData.securityQuestion
+        }),
       });
 
       if (!response.ok) {
@@ -84,16 +103,16 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
       }
 
       toast({
-        title: "Success",
-        description: "Found item reported successfully!",
+        title: "Success! 🌟",
+        description: "Thank you for reporting a found item.",
+        className: "bg-green-100 border-green-500 text-green-900"
       });
       onSuccess();
       onBack();
     } catch (error) {
-      console.error('Report Found Item Error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to report found item",
+        description: error.message || "Failed to report item",
         variant: "destructive",
       });
     } finally {
@@ -106,175 +125,157 @@ const ReportFoundItem = ({ onBack, onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center py-6">
-            <Button onClick={onBack} variant="ghost" className="mr-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-3xl font-bold text-gray-900">Report Found Item</h1>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-transparent">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Button
+          onClick={onBack}
+          variant="ghost"
+          className="mb-6 hover:bg-white/50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {/* Basic Information Card */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Basic Information</CardTitle>
-            <CardDescription>Tell us about the item you found</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Item Name <span className="text-red-500">*</span></Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  placeholder="e.g., iPhone 12, Black Wallet"
-                  required
-                />
+        <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-emerald-500 to-green-600 text-white p-8">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl">
+                <Package className="h-8 w-8 text-white" />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
-                <Select onValueChange={(value) => handleInputChange('category', value)} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div>
+                <CardTitle className="text-2xl font-bold">Report Found Item</CardTitle>
+                <CardDescription className="text-emerald-100 text-lg mt-1">
+                  Return a lost item to its owner
+                </CardDescription>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description <span className="text-red-500">*</span></Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Detailed description including color, brand, model, condition..."
-                required
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Location & Time Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Location & Time</CardTitle>
-            <CardDescription>When and where did you find the item?</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="locationFound">Location Found <span className="text-red-500">*</span></Label>
-              <Input
-                id="locationFound"
-                value={formData.locationFound}
-                onChange={(e) => handleInputChange('locationFound', e.target.value)}
-                placeholder="e.g., Campus Library, Main Street Park"
-                required
-              />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="timeFound">Date and Time Found <span className="text-red-500">*</span></Label>
-              <Input
-                id="timeFound"
-                type="datetime-local"
-                value={formData.timeFound}
-                onChange={(e) => handleInputChange('timeFound', e.target.value)}
-                required
-              />
-            </div>
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-8">
+
+              {/* Basic Info */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 border-b pb-2">
+                  <FileText className="h-5 w-5 text-emerald-500" />
+                  Item Details
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Item Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      placeholder="e.g., Blue Umbrella"
+                      className="border-slate-200 focus:border-emerald-500"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <Select onValueChange={(value) => handleInputChange('category', value)} required>
+                      <SelectTrigger className="border-slate-200 focus:ring-emerald-500">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Brief description..."
+                    className="min-h-[100px] border-slate-200 focus:border-emerald-500"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Location & Time */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 border-b pb-2">
+                  <MapPin className="h-5 w-5 text-emerald-500" />
+                  Location & Time
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="locationFound">Location Found</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="locationFound"
+                        value={formData.locationFound}
+                        onChange={(e) => handleInputChange('locationFound', e.target.value)}
+                        placeholder="e.g., Cafeteria"
+                        className="pl-10 border-slate-200 focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="timeFound">Date & Time Found</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="timeFound"
+                        type="datetime-local"
+                        value={formData.timeFound}
+                        onChange={(e) => handleInputChange('timeFound', e.target.value)}
+                        className="pl-10 border-slate-200 focus:border-emerald-500"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Verification */}
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 border-b pb-2">
+                  <Lock className="h-5 w-5 text-emerald-500" />
+                  Verification
+                </h3>
+                <div className="space-y-2">
+                  <Label htmlFor="securityQuestion">Security Question/Detail (Crucial)</Label>
+                  <Input
+                    id="securityQuestion"
+                    value={formData.securityQuestion}
+                    onChange={(e) => handleInputChange('securityQuestion', e.target.value)}
+                    placeholder="e.g., What is the wallpaper on the phone? (Answer only known to owner)"
+                    className="border-slate-200 focus:border-emerald-500"
+                    required
+                  />
+                  <p className="text-sm text-slate-500">Ask a question that only the true owner would know the answer to.</p>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={onBack} size="lg">
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white min-w-[200px]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Submitting...' : 'Report Found Item'}
+                </Button>
+              </div>
+
+            </form>
           </CardContent>
         </Card>
-
-        {/* Contact Information Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-            <CardDescription>How can we reach you if the item is claimed?</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Email Address <span className="text-red-500">*</span></Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                placeholder="your.email@example.com"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contactPhone">Phone Number (Optional)</Label>
-              <Input
-                id="contactPhone"
-                type="tel"
-                value={formData.contactPhone}
-                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                placeholder="+1 (555) 123-4567"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Reward Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>💰 Reward (Optional)</CardTitle>
-            <CardDescription>Expected reward from the lost item user</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="reward">Reward Amount</Label>
-              <Input
-                id="reward"
-                type="text"
-                value={formData.reward}
-                onChange={(e) => handleInputChange('reward', e.target.value)}
-                placeholder="e.g., $50, Negotiable"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Security Question Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Security Question</CardTitle>
-            <CardDescription>Provide a question to help verify the owner</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-             <div className="space-y-2">
-              <Label htmlFor="securityQuestion">Security Question <span className="text-red-500">*</span></Label>
-              <Input
-                id="securityQuestion"
-                value={formData.securityQuestion}
-                onChange={(e) => handleInputChange('securityQuestion', e.target.value)}
-                placeholder="e.g., What is the item's serial number?"
-                required
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Submit Button - Span across two columns on medium and larger screens */}
-        <div className="md:col-span-2">
-          <Button type="submit" onClick={handleSubmit} className="w-full" disabled={isLoading}>
-            {isLoading ? 'Reporting...' : 'Report Found Item'}
-          </Button>
-        </div>
       </div>
     </div>
   );

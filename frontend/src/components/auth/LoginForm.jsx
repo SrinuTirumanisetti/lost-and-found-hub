@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { LogIn, Mail, Lock } from 'lucide-react';
 
 export function LoginForm({ setShowLogin }) {
   const [email, setEmail] = useState('');
@@ -17,13 +22,14 @@ export function LoginForm({ setShowLogin }) {
       const result = await login(email, password);
       if (result.success) {
         toast({
-          title: "Success",
+          title: "Welcome Back!",
           description: "Logged in successfully",
+          className: "bg-green-100 border-green-500 text-green-900"
         });
       } else {
         toast({
-          title: "Error",
-          description: result.error || "Failed to login",
+          title: "Login Failed",
+          description: result.error || "Please check your credentials and try again",
           variant: "destructive",
         });
       }
@@ -39,49 +45,79 @@ export function LoginForm({ setShowLogin }) {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-10">
-      <div className="bg-gradient-to-br from-indigo-100 via-white to-pink-100 rounded-2xl shadow-2xl p-12 border-4 border-indigo-200">
-        <h2 className="text-4xl font-extrabold text-center mb-8 text-indigo-700 drop-shadow">Login</h2>
-        <p className="mb-8 text-base text-indigo-700 text-center">Enter your credentials to access your account</p>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="block text-base font-semibold text-indigo-800 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-2 border-indigo-300 bg-white shadow focus:border-pink-400 focus:ring-2 focus:ring-pink-200 text-lg py-2 px-4 transition-all duration-200"
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block text-base font-semibold text-indigo-800 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded-lg border-2 border-indigo-300 bg-white shadow focus:border-pink-400 focus:ring-2 focus:ring-pink-200 text-lg py-2 px-4 transition-all duration-200"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full flex justify-center py-2 px-8 border border-transparent rounded-lg shadow-md text-lg font-bold text-white bg-gradient-to-r from-indigo-500 via-pink-400 to-indigo-400 hover:from-pink-500 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-300 disabled:opacity-50 transition-all duration-200"
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <div className="mt-6 text-center text-base text-indigo-700">
-          Don't have an account? <button type="button" onClick={() => setShowLogin(false)} className="font-bold text-pink-600 hover:text-indigo-500 transition-colors duration-200">Register</button>
-        </div>
-      </div>
+    <div className="flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md border-0 shadow-2xl bg-white/90 backdrop-blur-md">
+        <CardHeader className="space-y-1 text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-xl p-8">
+          <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
+          <CardDescription className="text-indigo-100">
+            Sign in to your account to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
+                  className="pl-10 border-slate-200 focus:border-indigo-500 transition-all duration-200 h-10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  className="pl-10 border-slate-200 focus:border-indigo-500 transition-all duration-200 h-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 transition-all duration-300 shadow-lg mt-2"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Signing In...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <LogIn className="h-5 w-5" />
+                  Sign In
+                </div>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="justify-center pb-8 bg-slate-50/50 rounded-b-xl">
+          <p className="text-slate-600">
+            Don't have an account?{' '}
+            <button
+              onClick={() => setShowLogin(false)}
+              className="text-purple-600 font-bold hover:underline hover:text-purple-800 transition-colors"
+            >
+              Create one
+            </button>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
