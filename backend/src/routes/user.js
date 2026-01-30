@@ -83,6 +83,45 @@ router.get('/profile', auth, async (req, res) => {
   }
 });
 
+// Update user profile
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { name, email, phoneNumber } = req.body;
+    const userId = req.user._id;
+
+    // Build update object
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (email) updateFields.email = email;
+    if (phoneNumber) updateFields.phoneNumber = phoneNumber;
+
+    // Check if email/phone already exists (if changed)
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use by another account' });
+      }
+    }
+    if (phoneNumber) {
+      const existingUser = await User.findOne({ phoneNumber, _id: { $ne: userId } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Phone number already in use by another account' });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateFields },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({ message: 'Profile updated successfully', user });
+  } catch (error) {
+    console.error('Update User Profile Error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Future routes for managing user profile, etc.
 
 export default router; 

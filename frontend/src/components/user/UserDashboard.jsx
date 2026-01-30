@@ -2,18 +2,28 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Package } from 'lucide-react';
+import { Plus, Search, Package, LogOut, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ReportLostItem from './ReportLostItem';
 import ReportFoundItem from './ReportFoundItem';
 import ClaimModal from './ClaimModal';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 // Import new components
 import FoundItemsTab from './dashboard/FoundItemsTab';
 import LostItemsTab from './dashboard/LostItemsTab';
 import ClaimsTab from './dashboard/ClaimsTab';
 import ReturnsTab from './dashboard/ReturnsTab';
+import ProfileSettings from './dashboard/ProfileSettings';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -302,12 +312,36 @@ const UserDashboard = () => {
                 Home
               </button>
               <div className="w-px h-6 bg-white/10 hidden sm:block mx-2" />
-              <button 
-                onClick={logout}
-                className="px-4 py-2 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center gap-2"
-              >
-                Logout
-              </button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10 transition-colors">
+                    <Avatar className="h-10 w-10 border border-white/10 shadow-lg">
+                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarFallback className="bg-gradient-to-br from-yellow-400 to-orange-500 text-black font-bold">
+                        {user?.name?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-neutral-900/95 backdrop-blur-xl border-white/10 text-white" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none text-white">{user?.name}</p>
+                      <p className="text-xs leading-none text-neutral-400">{user?.email}</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem onClick={() => setActiveTab('profile')} className="focus:bg-white/10 focus:text-white cursor-pointer">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout} className="text-red-400 focus:bg-red-500/10 focus:text-red-300 cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
            </div>
         </div>
       </div>
@@ -394,6 +428,10 @@ const UserDashboard = () => {
 
           <TabsContent value="returns" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
             <ReturnsTab returns={successfulReturns} isLoading={isLoading} />
+          </TabsContent>
+
+          <TabsContent value="profile" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+            <ProfileSettings />
           </TabsContent>
         </Tabs>
       </div>
