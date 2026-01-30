@@ -2,8 +2,41 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Package, Calendar } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
-const ReturnsTab = ({ returns }) => {
+const ReturnsTab = ({ returns, isLoading }) => {
+    if (isLoading) {
+        return (
+            <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-slate-100">
+                    <CardTitle className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                        <Skeleton className="h-6 w-6 rounded-full" />
+                        <Skeleton className="h-8 w-48" />
+                    </CardTitle>
+                    <Skeleton className="h-4 w-64 mt-2" />
+                </CardHeader>
+                <CardContent className="p-8">
+                    <div className="space-y-6">
+                        {[1, 2].map((i) => (
+                            <Card key={i} className="border border-green-200/60 bg-gradient-to-r from-green-50 to-emerald-50">
+                                <CardContent className="flex justify-between items-center p-6">
+                                    <div className="space-y-3 flex-1">
+                                        <Skeleton className="h-6 w-64" />
+                                        <div className="flex items-center gap-4">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-4 w-40" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-8 w-32 rounded-full" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
         <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
             <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-slate-100">

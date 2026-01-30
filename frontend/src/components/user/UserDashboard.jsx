@@ -283,33 +283,22 @@ const UserDashboard = () => {
     return <ReportFoundItem onBack={() => setShowReportFound(false)} onSuccess={fetchUserItems} />;
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-slate-600 font-medium">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center py-4">
             <div className="space-y-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x">
                 Lost & Found Hub
               </h1>
-              <p className="text-slate-600 font-medium">Welcome back, {user?.name} 👋</p>
+              <p className="text-slate-600 font-medium text-sm sm:text-base">Welcome back, {user?.name} 👋</p>
             </div>
             <Button
               onClick={logout}
               variant="outline"
-              className="border-slate-300 hover:bg-slate-50 transition-all duration-200"
+              className="border-slate-300 hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-all duration-300 shadow-sm hover:shadow-md"
             >
               Logout
             </Button>
@@ -317,99 +306,103 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card
-            className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-red-500 to-rose-600 text-white border-0 overflow-hidden relative"
+            className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-red-500 to-rose-600 text-white border-0 overflow-hidden relative h-48"
             onClick={() => setShowReportLost(true)}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
-            <CardContent className="flex items-center p-8 relative z-10">
-              <div className="flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mr-6 group-hover:scale-110 transition-transform duration-300">
-                <Search className="h-8 w-8" />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="absolute -right-10 -bottom-10 bg-white/10 w-40 h-40 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-300"></div>
+            <CardContent className="flex items-center p-8 relative z-10 h-full">
+              <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mr-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
+                <Search className="h-8 w-8 text-white" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold">Report Lost Item</h3>
-                <p className="text-red-100 text-lg">Lost something? Let us help you find it</p>
+                <h3 className="text-2xl font-bold tracking-tight">Report Lost Item</h3>
+                <p className="text-red-100 text-lg font-medium">Lost something? Let us help you find it</p>
               </div>
             </CardContent>
           </Card>
 
           <Card
-            className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-emerald-500 to-green-600 text-white border-0 overflow-hidden relative"
+            className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-emerald-500 to-green-600 text-white border-0 overflow-hidden relative h-48"
             onClick={() => setShowReportFound(true)}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
-            <CardContent className="flex items-center p-8 relative z-10">
-              <div className="flex items-center justify-center w-16 h-16 bg-white/20 rounded-2xl mr-6 group-hover:scale-110 transition-transform duration-300">
-                <Package className="h-8 w-8" />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
+            <div className="absolute -right-10 -bottom-10 bg-white/10 w-40 h-40 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-300"></div>
+            <CardContent className="flex items-center p-8 relative z-10 h-full">
+              <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mr-6 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 shadow-lg">
+                <Package className="h-8 w-8 text-white" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold">Report Found Item</h3>
-                <p className="text-emerald-100 text-lg">Found something? Help return it to owner</p>
+                <h3 className="text-2xl font-bold tracking-tight">Report Found Item</h3>
+                <p className="text-emerald-100 text-lg font-medium">Found something? Help return it to owner</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="lost" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 h-16 mb-8 bg-white/80 backdrop-blur-sm border border-slate-200/60">
-            <TabsTrigger value="lost" className="text-sm font-medium data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-              My Lost Items
-            </TabsTrigger>
-            <TabsTrigger value="found" className="text-sm font-medium data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-              Browse Found Items
-            </TabsTrigger>
-            <TabsTrigger value="claims" className="text-sm font-medium data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-              My Claims
-            </TabsTrigger>
-            <TabsTrigger value="received-claims" className="text-sm font-medium data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-              Received Claims
-            </TabsTrigger>
-            <TabsTrigger value="returns" className="text-sm font-medium data-[state=active]:bg-blue-500 data-[state=active]:text-white">
-              Returns
-            </TabsTrigger>
+        <Tabs defaultValue="lost" className="w-full space-y-8">
+          <TabsList className="grid w-full grid-cols-5 h-16 bg-white/80 backdrop-blur-sm border border-slate-200/60 p-1 shadow-lg rounded-xl">
+            {['lost', 'found', 'claims', 'received-claims', 'returns'].map((tab) => (
+               <TabsTrigger 
+                 key={tab} 
+                 value={tab} 
+                 className="text-sm font-semibold rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
+               >
+                 {tab === 'lost' && 'My Lost Items'}
+                 {tab === 'found' && 'Browse Found Items'}
+                 {tab === 'claims' && 'My Claims'}
+                 {tab === 'received-claims' && 'Received Claims'}
+                 {tab === 'returns' && 'Returns'}
+               </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="lost" className="mt-6">
+          <TabsContent value="lost" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
             <LostItemsTab
               items={userLostItems}
+              isLoading={isLoading}
               onReportLost={() => setShowReportLost(true)}
               onUpdateStatus={handleUpdateLostItemStatus}
             />
           </TabsContent>
 
-          <TabsContent value="found" className="mt-6">
+          <TabsContent value="found" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
             <FoundItemsTab
               foundItems={foundItems}
               userClaims={userClaims}
+              isLoading={isLoading}
               onClaim={handleClaim}
             />
           </TabsContent>
 
-          <TabsContent value="claims" className="mt-6">
+          <TabsContent value="claims" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
             <ClaimsTab
               claims={userClaims}
               type="submitted"
+              isLoading={isLoading}
             />
           </TabsContent>
 
-          <TabsContent value="received-claims" className="mt-6">
+          <TabsContent value="received-claims" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
             <ClaimsTab
               claims={userClaims}
               type="received"
+              isLoading={isLoading}
               onResponse={handleClaimResponse}
             />
           </TabsContent>
 
-          <TabsContent value="returns" className="mt-6">
-            <ReturnsTab returns={successfulReturns} />
+          <TabsContent value="returns" className="mt-0 focus-visible:outline-none focus-visible:ring-0">
+            <ReturnsTab returns={successfulReturns} isLoading={isLoading} />
           </TabsContent>
         </Tabs>
 
         {/* Statistics Section */}
-        <StatsSection trendingCategories={trendingCategories} />
+        <StatsSection trendingCategories={trendingCategories} isLoading={isLoading} />
       </div>
 
       {showClaimModal && selectedFoundItem && (

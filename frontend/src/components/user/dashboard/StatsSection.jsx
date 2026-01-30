@@ -2,8 +2,48 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, AlertCircle } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
-const StatsSection = ({ trendingCategories }) => {
+const StatsSection = ({ trendingCategories, isLoading }) => {
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+                <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+                    <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-slate-100">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                                <Skeleton className="h-6 w-6 rounded-full" />
+                                <Skeleton className="h-6 w-40" />
+                            </CardTitle>
+                            <Skeleton className="h-6 w-20 rounded-full" />
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        <Skeleton className="h-4 w-64 mb-6" />
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                    <div className="flex items-center gap-4">
+                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-4 w-32" />
+                                            <Skeleton className="h-3 w-24" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-2 w-16 rounded-full" />
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 text-white overflow-hidden relative">
+                     <Skeleton className="h-full w-full opacity-20" />
+                </Card>
+            </div>
+        );
+    }
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
             {/* Trending Categories Card */}

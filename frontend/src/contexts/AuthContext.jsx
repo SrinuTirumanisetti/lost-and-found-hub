@@ -12,8 +12,15 @@ export const AuthProvider = ({ children }) => {
     // Check if user is logged in
     const checkAuth = async () => {
       try {
-        // await connectDB(); // Removed
         const token = localStorage.getItem('token');
+        const cachedUser = localStorage.getItem('user_data');
+        
+        // Optimistic restore
+        if (token && cachedUser) {
+            setUser(JSON.parse(cachedUser));
+            setLoading(false); // Immediate load
+        }
+
         if (token) {
           // Verify token with backend
           const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
@@ -23,14 +30,24 @@ export const AuthProvider = ({ children }) => {
           });
           
           if (response.ok) {
-            const userData = await response.json();
-            setUser(userData);
+            const data = await response.json();
+            // Update with fresh data
+            setUser(data.user);
+            localStorage.setItem('user_data', JSON.stringify(data.user));
           } else {
+            // Token invalid
             localStorage.removeItem('token');
+            localStorage.removeItem('user_data');
+            setUser(null);
           }
+        } else {
+            setLoading(false);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
+        // On error, if we had cached user, we might want to keep it or clear it
+        // For safety, let's keep it but maybe show a warning? 
+        // Or just do nothing and let the next request fail if network is down.
       } finally {
         setLoading(false);
       }
@@ -64,6 +81,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       console.log('Login successful, received token');
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user_data', JSON.stringify(data.user));
       setUser(data.user);
       return { success: true };
     } catch (error) {
@@ -100,6 +118,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user_data');
     setUser(null);
   }, []);
 

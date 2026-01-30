@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package, MapPin, Calendar, Search, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Helper to robustly extract userId
 const getUserId = (val) => {
@@ -20,7 +21,7 @@ const safeGet = (obj, path, def = undefined) => {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj) ?? def;
 };
 
-const FoundItemsTab = ({ foundItems, userClaims, onClaim }) => {
+const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
     const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -76,6 +77,45 @@ const FoundItemsTab = ({ foundItems, userClaims, onClaim }) => {
     useEffect(() => {
         setFilteredFoundItems(filterItems());
     }, [filterItems]);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-8">
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                    <CardContent className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Card key={i} className="group hover:shadow-2xl transition-all duration-300 border-0 overflow-hidden bg-white h-full flex flex-col">
+                            <div className="relative h-48 w-full overflow-hidden">
+                                <Skeleton className="h-full w-full" />
+                            </div>
+                            <CardContent className="p-6 flex-1 flex flex-col gap-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <Skeleton className="h-6 w-32" />
+                                    <Skeleton className="h-5 w-20 rounded-full" />
+                                </div>
+                                <div className="space-y-3 mb-6 flex-1">
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-4 w-1/2" />
+                                </div>
+                                <Skeleton className="h-12 w-full rounded-xl" />
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
