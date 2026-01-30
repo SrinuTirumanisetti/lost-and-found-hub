@@ -223,12 +223,12 @@ const AdminDashboard = () => {
                         <div className="flex items-center gap-4">
                           <Avatar>
                             <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold">
-                              {user.name.charAt(0).toUpperCase()}
+                              {((user?.name?.[0]) || (user?.email?.[0]) || '?').toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold text-slate-800">{user.name}</p>
-                            <p className="text-sm text-slate-500">{user.email}</p>
+                            <p className="font-semibold text-slate-800">{user?.name || user?.email || 'Unknown'}</p>
+                            <p className="text-sm text-slate-500">{user?.email || ''}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
