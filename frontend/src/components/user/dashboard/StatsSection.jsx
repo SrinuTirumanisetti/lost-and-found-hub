@@ -38,7 +38,7 @@ const StatsSection = ({ trendingCategories, isLoading }) => {
                 </Card>
 
                 <Card className="border-0 shadow-xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 text-white overflow-hidden relative">
-                     <Skeleton className="h-full w-full opacity-20" />
+                    <Skeleton className="h-full w-full opacity-20" />
                 </Card>
             </div>
         );

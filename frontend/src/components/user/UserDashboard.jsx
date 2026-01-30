@@ -14,7 +14,6 @@ import FoundItemsTab from './dashboard/FoundItemsTab';
 import LostItemsTab from './dashboard/LostItemsTab';
 import ClaimsTab from './dashboard/ClaimsTab';
 import ReturnsTab from './dashboard/ReturnsTab';
-import StatsSection from './dashboard/StatsSection';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -41,6 +40,7 @@ const fetchWithAuth = async (url, options = {}) => {
 
 const UserDashboard = () => {
   const { logout, user } = useAuth();
+  const [activeTab, setActiveTab] = useState('lost');
   const [showReportLost, setShowReportLost] = useState(false);
   const [showReportFound, setShowReportFound] = useState(false);
   const [showClaimModal, setShowClaimModal] = useState(false);
@@ -58,7 +58,6 @@ const UserDashboard = () => {
     submittedClaims: [],
     receivedClaims: []
   });
-  const [trendingCategories, setTrendingCategories] = useState([]);
 
   // Data fetching functions
   const fetchUserItems = useCallback(async () => {
@@ -116,20 +115,6 @@ const UserDashboard = () => {
     }
   }, [toast]);
 
-  const fetchTrendingCategories = useCallback(async () => {
-    try {
-      const response = await fetchWithAuth(`${API_BASE_URL}/api/items/stats/trending-categories`);
-      if (!response.ok) throw new Error('Failed to fetch trending categories');
-
-      const data = await response.json();
-      setTrendingCategories(data);
-      return true;
-    } catch (error) {
-      console.error('Fetch trending categories error:', error);
-      return false;
-    }
-  }, []);
-
   useEffect(() => {
     if (user) {
       const loadData = async () => {
@@ -137,8 +122,7 @@ const UserDashboard = () => {
           setIsLoading(true);
           await Promise.all([
             fetchUserItems(),
-            fetchUserClaims(),
-            fetchTrendingCategories()
+            fetchUserClaims()
           ]);
         } catch (error) {
           console.error('Error loading dashboard data:', error);
@@ -154,7 +138,7 @@ const UserDashboard = () => {
 
       loadData();
     }
-  }, [user, fetchUserItems, fetchUserClaims, fetchTrendingCategories, toast]);
+  }, [user, fetchUserItems, fetchUserClaims, toast]);
 
   // Handlers wrapped in useCallback
   const handleClaim = useCallback((foundItem) => {
@@ -284,80 +268,92 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden font-sans selection:bg-yellow-500/30">
+      {/* Dynamic Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse delay-2000" />
+      </div>
+
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 sticky top-0 z-50 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient-x">
-                Lost & Found Hub
-              </h1>
-              <p className="text-slate-600 font-medium text-sm sm:text-base">Welcome back, {user?.name} 👋</p>
+      <div className="bg-black/20 backdrop-blur-xl text-white py-4 px-6 border-b border-white/5 sticky top-0 z-50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative w-10 h-10 bg-yellow-400 rotate-3 flex items-center justify-center shadow-lg shadow-yellow-400/20 rounded-xl overflow-hidden group hover:rotate-6 transition-transform">
+              <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="text-[10px] font-black text-black -rotate-3 text-center leading-tight tracking-tighter">LOST<br/>&FOUND</span>
             </div>
-            <Button
-              onClick={logout}
-              variant="outline"
-              className="border-slate-300 hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-all duration-300 shadow-sm hover:shadow-md"
-            >
-              Logout
-            </Button>
+            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent hidden sm:block">
+              Portal
+            </h1>
           </div>
+
+          <div className="flex items-center gap-2 sm:gap-4">
+              <button 
+                onClick={() => setActiveTab('lost')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  activeTab === 'lost' 
+                    ? 'bg-white/10 text-white shadow-inner border border-white/10' 
+                    : 'text-neutral-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                Home
+              </button>
+              <div className="w-px h-6 bg-white/10 hidden sm:block mx-2" />
+              <button 
+                onClick={logout}
+                className="px-4 py-2 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 hover:text-red-300 text-sm font-medium transition-all duration-300 flex items-center gap-2"
+              >
+                Logout
+              </button>
+           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card
-            className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-red-500 to-rose-600 text-white border-0 overflow-hidden relative h-48"
-            onClick={() => setShowReportLost(true)}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="absolute -right-10 -bottom-10 bg-white/10 w-40 h-40 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-300"></div>
-            <CardContent className="flex items-center p-8 relative z-10 h-full">
-              <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mr-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg">
-                <Search className="h-8 w-8 text-white" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight">Report Lost Item</h3>
-                <p className="text-red-100 text-lg font-medium">Lost something? Let us help you find it</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="group cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 bg-gradient-to-br from-emerald-500 to-green-600 text-white border-0 overflow-hidden relative h-48"
-            onClick={() => setShowReportFound(true)}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-300"></div>
-            <div className="absolute -right-10 -bottom-10 bg-white/10 w-40 h-40 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-300"></div>
-            <CardContent className="flex items-center p-8 relative z-10 h-full">
-              <div className="flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl mr-6 group-hover:scale-110 group-hover:-rotate-3 transition-all duration-300 shadow-lg">
-                <Package className="h-8 w-8 text-white" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-bold tracking-tight">Report Found Item</h3>
-                <p className="text-emerald-100 text-lg font-medium">Found something? Help return it to owner</p>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative z-10">
+        {/* Welcome Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-white/5">
+          <div className="space-y-2">
+            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+              Welcome back, <span className="text-yellow-400">{user?.name?.split(' ')[0] || 'User'}</span>
+            </h2>
+            <p className="text-neutral-400 max-w-xl">
+              Manage your lost items, browse found items, and help others reunite with their belongings.
+            </p>
+          </div>
+          <div className="flex gap-3">
+             <Button 
+                onClick={() => setShowReportLost(true)}
+                className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold shadow-lg shadow-yellow-400/20 border-0"
+              >
+                <Plus className="mr-2 h-4 w-4" /> I Lost Something
+              </Button>
+             <Button 
+                onClick={() => setShowReportFound(true)}
+                variant="outline"
+                className="bg-transparent border-white/20 text-white hover:bg-white/5 hover:text-white"
+              >
+                <Search className="mr-2 h-4 w-4" /> I Found Something
+              </Button>
+          </div>
         </div>
 
-        <Tabs defaultValue="lost" className="w-full space-y-8">
-          <TabsList className="grid w-full grid-cols-5 h-16 bg-white/80 backdrop-blur-sm border border-slate-200/60 p-1 shadow-lg rounded-xl">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
+          <TabsList className="grid w-full grid-cols-5 h-16 bg-neutral-900/50 backdrop-blur-xl border border-white/10 p-1.5 shadow-2xl rounded-2xl">
             {['lost', 'found', 'claims', 'received-claims', 'returns'].map((tab) => (
-               <TabsTrigger 
-                 key={tab} 
-                 value={tab} 
-                 className="text-sm font-semibold rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
-               >
-                 {tab === 'lost' && 'My Lost Items'}
-                 {tab === 'found' && 'Browse Found Items'}
-                 {tab === 'claims' && 'My Claims'}
-                 {tab === 'received-claims' && 'Received Claims'}
-                 {tab === 'returns' && 'Returns'}
-               </TabsTrigger>
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="text-sm font-semibold rounded-xl text-neutral-400 data-[state=active]:bg-yellow-400 data-[state=active]:text-black data-[state=active]:shadow-lg data-[state=active]:shadow-yellow-400/20 transition-all duration-300 hover:text-neutral-200 hover:bg-white/5"
+              >
+                {tab === 'lost' && 'My Lost Items'}
+                {tab === 'found' && 'Browse Found Items'}
+                {tab === 'claims' && 'My Claims'}
+                {tab === 'received-claims' && 'Received Claims'}
+                {tab === 'returns' && 'Returns'}
+              </TabsTrigger>
             ))}
           </TabsList>
 
@@ -400,9 +396,6 @@ const UserDashboard = () => {
             <ReturnsTab returns={successfulReturns} isLoading={isLoading} />
           </TabsContent>
         </Tabs>
-
-        {/* Statistics Section */}
-        <StatsSection trendingCategories={trendingCategories} isLoading={isLoading} />
       </div>
 
       {showClaimModal && selectedFoundItem && (

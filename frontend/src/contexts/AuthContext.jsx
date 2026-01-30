@@ -14,11 +14,11 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         const cachedUser = localStorage.getItem('user_data');
-        
+
         // Optimistic restore
         if (token && cachedUser) {
-            setUser(JSON.parse(cachedUser));
-            setLoading(false); // Immediate load
+          setUser(JSON.parse(cachedUser));
+          setLoading(false); // Immediate load
         }
 
         if (token) {
@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
               'Authorization': `Bearer ${token}`
             }
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             // Update with fresh data
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
           }
         } else {
-            setLoading(false);
+          setLoading(false);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     console.log('Attempting login with API URL:', API_BASE_URL);
     const startTime = Date.now();
-    
+
     try {
       console.log('Sending login request...');
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ email, password }),
       });
-      
+
       console.log('Login response received after', Date.now() - startTime, 'ms');
 
       if (!response.ok) {
@@ -86,9 +86,9 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Login error after', Date.now() - startTime, 'ms:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Failed to connect to the server. Please try again later.' 
+      return {
+        success: false,
+        error: error.message || 'Failed to connect to the server. Please try again later.'
       };
     }
   }, []);

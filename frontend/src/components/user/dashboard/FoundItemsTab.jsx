@@ -81,34 +81,34 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
     if (isLoading) {
         return (
             <div className="space-y-8">
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <Card className="border-0 shadow-lg bg-neutral-900/50 backdrop-blur-md">
                     <CardContent className="p-6">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full bg-white/10" />
+                            <Skeleton className="h-10 w-full bg-white/10" />
+                            <Skeleton className="h-10 w-full bg-white/10" />
+                            <Skeleton className="h-10 w-full bg-white/10" />
                         </div>
                     </CardContent>
                 </Card>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <Card key={i} className="group hover:shadow-2xl transition-all duration-300 border-0 overflow-hidden bg-white h-full flex flex-col">
+                        <Card key={i} className="group border-0 overflow-hidden bg-neutral-900/50 backdrop-blur-md h-full flex flex-col">
                             <div className="relative h-48 w-full overflow-hidden">
-                                <Skeleton className="h-full w-full" />
+                                <Skeleton className="h-full w-full bg-white/10" />
                             </div>
                             <CardContent className="p-6 flex-1 flex flex-col gap-4">
                                 <div className="flex justify-between items-start mb-2">
-                                    <Skeleton className="h-6 w-32" />
-                                    <Skeleton className="h-5 w-20 rounded-full" />
+                                    <Skeleton className="h-6 w-32 bg-white/10" />
+                                    <Skeleton className="h-5 w-20 rounded-full bg-white/10" />
                                 </div>
                                 <div className="space-y-3 mb-6 flex-1">
-                                    <Skeleton className="h-4 w-full" />
-                                    <Skeleton className="h-4 w-3/4" />
-                                    <Skeleton className="h-4 w-1/2" />
+                                    <Skeleton className="h-4 w-full bg-white/10" />
+                                    <Skeleton className="h-4 w-3/4 bg-white/10" />
+                                    <Skeleton className="h-4 w-1/2 bg-white/10" />
                                 </div>
-                                <Skeleton className="h-12 w-full rounded-xl" />
+                                <Skeleton className="h-12 w-full rounded-xl bg-white/10" />
                             </CardContent>
                         </Card>
                     ))}
@@ -118,13 +118,13 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
     }
 
     return (
-        <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-emerald-50 to-green-50 border-b border-slate-100">
-                <CardTitle className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                    <Package className="h-6 w-6 text-emerald-600" />
+        <Card className="border-0 shadow-xl bg-neutral-900/50 backdrop-blur-md text-neutral-200">
+            <CardHeader className="bg-white/5 border-b border-white/10">
+                <CardTitle className="text-2xl font-bold text-white flex items-center gap-3">
+                    <Package className="h-6 w-6 text-yellow-500" />
                     Found Items
                 </CardTitle>
-                <CardDescription className="text-slate-600 text-lg">Items others have found - claim if yours</CardDescription>
+                <CardDescription className="text-neutral-400 text-lg">Items others have found - claim if yours</CardDescription>
             </CardHeader>
             <CardContent className="p-8">
                 {/* Search and Filter Section */}
@@ -132,34 +132,34 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
                     <div className="flex flex-col lg:flex-row gap-4">
                         <div className="flex-1">
                             <div className="relative">
-                                <Search className="absolute left-4 top-4 h-5 w-5 text-slate-400" />
+                                <Search className="absolute left-4 top-4 h-5 w-5 text-neutral-500" />
                                 <Input
                                     placeholder="Search by name, category, or location..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-12 h-14 text-lg border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 rounded-xl bg-white/80 backdrop-blur-sm"
+                                    className="pl-12 h-14 text-lg border-white/10 focus:border-yellow-500 focus:ring-yellow-500/20 rounded-xl bg-black/40 text-white placeholder:text-neutral-600"
                                 />
                             </div>
                         </div>
                         <div className="flex gap-4">
                             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                                <SelectTrigger className="w-[200px] h-14 text-lg border-slate-200 rounded-xl bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="w-[200px] h-14 text-lg border-white/10 rounded-xl bg-black/40 text-white">
                                     <SelectValue placeholder="Category" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl">
+                                <SelectContent className="rounded-xl bg-neutral-900 border-white/10 text-white">
                                     <SelectItem value="all">All Categories</SelectItem>
                                     {categories.map((category) => (
-                                        <SelectItem key={category} value={category}>
+                                        <SelectItem key={category} value={category} className="focus:bg-white/10 focus:text-white">
                                             {category}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             <Select value={dateFilter} onValueChange={setDateFilter}>
-                                <SelectTrigger className="w-[200px] h-14 text-lg border-slate-200 rounded-xl bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="w-[200px] h-14 text-lg border-white/10 rounded-xl bg-black/40 text-white">
                                     <SelectValue placeholder="Date" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-xl">
+                                <SelectContent className="rounded-xl bg-neutral-900 border-white/10 text-white">
                                     <SelectItem value="all">All Time</SelectItem>
                                     <SelectItem value="today">Today</SelectItem>
                                     <SelectItem value="week">Last 7 Days</SelectItem>
@@ -171,8 +171,8 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
 
                     {/* Results Count */}
                     <div className="flex items-center justify-between">
-                        <p className="text-lg text-slate-600 font-medium">
-                            Showing <span className="font-bold text-blue-600">{filteredFoundItems.length}</span> of <span className="font-bold">{foundItems.length}</span> items
+                        <p className="text-lg text-neutral-400 font-medium">
+                            Showing <span className="font-bold text-yellow-500">{filteredFoundItems.length}</span> of <span className="font-bold">{foundItems.length}</span> items
                         </p>
                     </div>
                 </div>
@@ -180,10 +180,10 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
                 {/* Items Grid */}
                 {filteredFoundItems.length === 0 ? (
                     <div className="text-center py-16 space-y-4">
-                        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
-                            <Package className="h-10 w-10 text-slate-400" />
+                        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                            <Package className="h-10 w-10 text-neutral-600" />
                         </div>
-                        <p className="text-lg text-slate-500">No items match your search criteria</p>
+                        <p className="text-lg text-neutral-500">No items match your search criteria</p>
                         <Button
                             onClick={() => {
                                 setSearchQuery('');
@@ -191,7 +191,7 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
                                 setDateFilter('all');
                             }}
                             variant="outline"
-                            className="border-slate-300 hover:bg-slate-50"
+                            className="border-white/10 bg-white/5 text-white hover:bg-white/10"
                         >
                             Clear Filters
                         </Button>
@@ -211,21 +211,21 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
                             );
 
                             return (
-                                <Card key={founditems._id} className="group overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 border-0 bg-white/90 backdrop-blur-sm">
-                                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
+                                <Card key={founditems._id} className="group overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 border border-white/10 bg-black/40 hover:bg-black/60">
+                                    <CardHeader className="bg-white/5 border-b border-white/10 p-6">
                                         <div className="flex justify-between items-start">
                                             <div className="space-y-2">
-                                                <CardTitle className="text-xl font-bold text-slate-800">{founditems.name}</CardTitle>
+                                                <CardTitle className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">{founditems.name}</CardTitle>
                                                 <div className="flex items-center gap-2">
-                                                    <Package className="h-4 w-4 text-blue-500" />
-                                                    <CardDescription className="text-slate-600 font-medium">{founditems.category}</CardDescription>
+                                                    <Package className="h-4 w-4 text-yellow-500" />
+                                                    <CardDescription className="text-neutral-400 font-medium">{founditems.category}</CardDescription>
                                                 </div>
                                             </div>
                                             <Badge
                                                 variant={founditems.isClaimed ? "default" : "secondary"}
                                                 className={`px-3 py-1 text-sm font-medium ${founditems.isClaimed
-                                                        ? "bg-green-100 text-green-800 border-green-200"
-                                                        : "bg-blue-100 text-blue-800 border-blue-200"
+                                                        ? "bg-green-500/20 text-green-400 border-green-500/30"
+                                                        : "bg-blue-500/20 text-blue-400 border-blue-500/30"
                                                     }`}
                                             >
                                                 {founditems.isClaimed ? "✓ Claimed" : "📍 Available"}
@@ -235,18 +235,18 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
 
                                     <CardContent className="p-6 space-y-4">
                                         <div className="space-y-3">
-                                            <div className="flex items-center gap-2 text-slate-600">
-                                                <MapPin className="h-4 w-4 text-red-500" />
-                                                <span className="font-medium">Found at:</span> {founditems.locationFound}
+                                            <div className="flex items-center gap-2 text-neutral-400">
+                                                <MapPin className="h-4 w-4 text-red-400" />
+                                                <span className="font-medium text-neutral-300">Found at:</span> {founditems.locationFound}
                                             </div>
-                                            <div className="flex items-center gap-2 text-slate-600">
-                                                <Calendar className="h-4 w-4 text-purple-500" />
-                                                <span className="font-medium">Date:</span> {new Date(founditems.timeFound).toLocaleDateString()}
+                                            <div className="flex items-center gap-2 text-neutral-400">
+                                                <Calendar className="h-4 w-4 text-purple-400" />
+                                                <span className="font-medium text-neutral-300">Date:</span> {new Date(founditems.timeFound).toLocaleDateString()}
                                             </div>
                                             {founditems.description && (
-                                                <div className="p-3 bg-slate-50 rounded-lg">
-                                                    <p className="text-sm text-slate-700">
-                                                        <span className="font-semibold">Description:</span> {founditems.description}
+                                                <div className="p-3 bg-white/5 rounded-lg border border-white/5">
+                                                    <p className="text-sm text-neutral-300">
+                                                        <span className="font-semibold text-neutral-200">Description:</span> {founditems.description}
                                                     </p>
                                                 </div>
                                             )}
@@ -255,7 +255,7 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
                                         {getUserId(founditems.userId) !== String(user?._id) && !founditems.isClaimed && !hasPendingClaim && (
                                             <Button
                                                 onClick={() => onClaim(founditems)}
-                                                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                                                className="w-full h-12 text-lg font-semibold bg-yellow-500 hover:bg-yellow-400 text-black rounded-xl shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/30 transition-all duration-300"
                                             >
                                                 <Package className="h-5 w-5 mr-2" />
                                                 Claim This Item
@@ -264,15 +264,15 @@ const FoundItemsTab = ({ foundItems, userClaims, isLoading, onClaim }) => {
 
                                         {getUserId(founditems.userId) !== String(user?._id) && (founditems.isClaimed || hasPendingClaim) && (
                                             <div className="text-center py-3">
-                                                <p className="text-slate-500 font-medium">
+                                                <p className="text-neutral-500 font-medium">
                                                     {founditems.isClaimed ? '✓ Already claimed by someone' : '⏳ Claim submitted'}
                                                 </p>
                                             </div>
                                         )}
 
                                         {getUserId(founditems.userId) === String(user?._id) && (
-                                            <div className="text-center py-3 bg-blue-50 rounded-lg">
-                                                <p className="text-blue-700 font-medium flex items-center justify-center gap-2">
+                                            <div className="text-center py-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                                                <p className="text-blue-400 font-medium flex items-center justify-center gap-2">
                                                     <User className="h-4 w-4" />
                                                     You reported this item
                                                 </p>

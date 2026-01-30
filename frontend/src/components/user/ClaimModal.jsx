@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
 const ClaimModal = ({ isOpen, onClose, itemId, onClaim, selectedItem }) => {
-  const [reason, setReason] = useState('');
   const [answer, setAnswer] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -16,7 +15,8 @@ const ClaimModal = ({ isOpen, onClose, itemId, onClaim, selectedItem }) => {
     setIsLoading(true);
 
     try {
-      await onClaim(itemId, reason, answer);
+      // User requested to remove additional info, so we pass a default reason string
+      await onClaim(itemId, "Claim submitted via secure portal", answer);
       toast({
         title: 'Success',
         description: 'Your claim has been submitted successfully',
@@ -35,51 +35,51 @@ const ClaimModal = ({ isOpen, onClose, itemId, onClaim, selectedItem }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="bg-neutral-900/95 backdrop-blur-xl border-white/10 text-white sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Claim Item</DialogTitle>
-          <DialogDescription>
-            Please answer the security question and provide a reason why you believe this item belongs to you.
+          <DialogTitle className="text-xl font-bold text-white">Claim Item</DialogTitle>
+          <DialogDescription className="text-neutral-400">
+            Please answer the security question to prove ownership.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Security Question</Label>
-            <div className="p-3 bg-gray-50 rounded-md">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+          <div className="space-y-3">
+            <Label className="text-neutral-300 font-medium">Security Question</Label>
+            <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-yellow-400 font-medium shadow-inner">
               {selectedItem?.securityQuestion}
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="answer">Your Answer</Label>
+          <div className="space-y-3">
+            <Label htmlFor="answer" className="text-neutral-300 font-medium">Your Answer</Label>
             <Textarea
               id="answer"
-              placeholder="Enter your answer to the security question..."
+              placeholder="Enter your answer..."
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               required
-              className="min-h-[80px]"
+              className="min-h-[100px] bg-white/5 border-white/10 focus:border-yellow-400/50 focus:ring-yellow-400/20 text-white placeholder:text-neutral-600 resize-none"
             />
+            <p className="text-xs text-neutral-500">
+              Only the person who found the item will see this answer.
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="reason">Additional Information</Label>
-            <Textarea
-              id="reason"
-              placeholder="Please provide any additional information that proves this item belongs to you..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              required
-              className="min-h-[100px]"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end gap-3 pt-2">
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={onClose}
+              className="text-neutral-400 hover:text-white hover:bg-white/10"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Submitting...' : 'Submit Claim'}
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold shadow-lg shadow-yellow-400/20 border-0"
+            >
+              {isLoading ? 'Submitting...' : 'Submit Answer'}
             </Button>
           </div>
         </form>

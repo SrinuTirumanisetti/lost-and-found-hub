@@ -133,28 +133,36 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent">
-      {/* Wrapper to match dashboard style if needed, or keeping it clean */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 relative overflow-hidden font-sans selection:bg-yellow-500/30">
+      {/* Dynamic Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] animate-pulse delay-1000" />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-indigo-500/10 rounded-full blur-[100px] animate-pulse delay-2000" />
+      </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <Button
           onClick={onBack}
           variant="ghost"
-          className="mb-6 hover:bg-white/50"
+          className="mb-6 text-neutral-400 hover:text-white hover:bg-white/5"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </Button>
 
-        <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-red-500 to-rose-600 text-white p-8">
+        <Card className="border border-white/10 shadow-2xl bg-black/40 backdrop-blur-xl text-white overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-rose-500 to-orange-500" />
+          
+          <CardHeader className="p-8 border-b border-white/5">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <Search className="h-8 w-8 text-white" />
+              <div className="p-3 bg-red-500/10 rounded-xl border border-red-500/20 shadow-lg shadow-red-500/10">
+                <Search className="h-8 w-8 text-red-400" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold">Report Lost Item</CardTitle>
-                <CardDescription className="text-red-100 text-lg mt-1">
+                <CardTitle className="text-2xl font-bold text-white">Report Lost Item</CardTitle>
+                <CardDescription className="text-neutral-400 text-lg mt-1">
                   Help us help you find your lost belongings
                 </CardDescription>
               </div>
@@ -166,32 +174,32 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
 
               {/* Basic Info Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 border-b pb-2">
-                  <FileText className="h-5 w-5 text-red-500" />
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <FileText className="h-5 w-5 text-red-400" />
                   Item Details
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Item Name</Label>
+                    <Label htmlFor="name" className="text-neutral-300">Item Name</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       placeholder="e.g., iPhone 12, Black Wallet"
-                      className="border-slate-200 focus:border-red-500"
+                      className="bg-white/5 border-white/10 focus:border-red-400/50 focus:ring-red-400/20 text-white placeholder:text-neutral-600"
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category" className="text-neutral-300">Category</Label>
                     <Select onValueChange={(value) => handleInputChange('category', value)} required>
-                      <SelectTrigger className="border-slate-200 focus:ring-red-500">
+                      <SelectTrigger className="bg-white/5 border-white/10 focus:ring-red-400/20 text-white">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-neutral-900 border-white/10 text-white">
                         {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                          <SelectItem key={category} value={category} className="focus:bg-white/10 focus:text-white">{category}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -199,13 +207,13 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-neutral-300">Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Detailed description including color, brand, model, distinguishing features..."
-                    className="min-h-[120px] border-slate-200 focus:border-red-500"
+                    className="min-h-[120px] bg-white/5 border-white/10 focus:border-red-400/50 focus:ring-red-400/20 text-white placeholder:text-neutral-600"
                     required
                   />
                 </div>
@@ -213,35 +221,35 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
 
               {/* Location & Time Section */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 border-b pb-2">
-                  <MapPin className="h-5 w-5 text-red-500" />
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <MapPin className="h-5 w-5 text-red-400" />
                   When & Where
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="locationLost">Location Lost</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Label htmlFor="locationLost" className="text-neutral-300">Location Lost</Label>
+                    <div className="relative group">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-neutral-500 group-focus-within:text-red-400 transition-colors" />
                       <Input
                         id="locationLost"
                         value={formData.locationLost}
                         onChange={(e) => handleInputChange('locationLost', e.target.value)}
                         placeholder="e.g., Campus Library"
-                        className="pl-10 border-slate-200 focus:border-red-500"
+                        className="pl-10 bg-white/5 border-white/10 focus:border-red-400/50 focus:ring-red-400/20 text-white placeholder:text-neutral-600"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="timeLost">Date & Time</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Label htmlFor="timeLost" className="text-neutral-300">Date & Time</Label>
+                    <div className="relative group">
+                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-neutral-500 group-focus-within:text-red-400 transition-colors" />
                       <Input
                         id="timeLost"
                         type="datetime-local"
                         value={formData.timeLost}
                         onChange={(e) => handleInputChange('timeLost', e.target.value)}
-                        className="pl-10 border-slate-200 focus:border-red-500"
+                        className="pl-10 bg-white/5 border-white/10 focus:border-red-400/50 focus:ring-red-400/20 text-white [color-scheme:dark]"
                         required
                       />
                     </div>
@@ -251,33 +259,33 @@ const ReportLostItem = ({ onBack, onSuccess }) => {
 
               {/* Additional Details */}
               <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2 border-b pb-2">
-                  <Tag className="h-5 w-5 text-red-500" />
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 border-b border-white/10 pb-2">
+                  <Tag className="h-5 w-5 text-red-400" />
                   Additional Info
                 </h3>
                 <div className="space-y-2">
-                  <Label htmlFor="reward">Reward Offered (Optional)</Label>
-                  <div className="relative">
-                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                  <Label htmlFor="reward" className="text-neutral-300">Reward Offered (Optional)</Label>
+                  <div className="relative group">
+                    <DollarSign className="absolute left-3 top-3 h-4 w-4 text-neutral-500 group-focus-within:text-red-400 transition-colors" />
                     <Input
                       id="reward"
                       value={formData.reward}
                       onChange={(e) => handleInputChange('reward', e.target.value)}
                       placeholder="e.g., $50, Coffee on me"
-                      className="pl-10 border-slate-200 focus:border-red-500"
+                      className="pl-10 bg-white/5 border-white/10 focus:border-red-400/50 focus:ring-red-400/20 text-white placeholder:text-neutral-600"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-4 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={onBack} size="lg">
+              <div className="flex justify-end gap-4 pt-4 border-t border-white/10">
+                <Button type="button" variant="ghost" onClick={onBack} size="lg" className="text-white hover:bg-white/10 hover:text-white">
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   size="lg"
-                  className="bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white min-w-[200px]"
+                  className="bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20 border-0 min-w-[200px]"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Reporting...' : 'Report Lost Item'}
