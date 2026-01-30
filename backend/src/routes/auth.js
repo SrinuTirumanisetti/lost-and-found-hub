@@ -90,7 +90,6 @@ router.post('/login', async (req, res) => {
     // Remove password from response
     const userObject = user.toObject();
     delete userObject.password;
-    delete userObject.tokens;
     
     console.log('Login successful, returning response');
     console.log('Total login time:', Date.now() - startTime, 'ms');
@@ -121,14 +120,16 @@ router.get('/verify', async (req, res) => {
   try {
     // Verify token and find the user who owns it
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-    const user = await User.findOne({ _id: decoded.user.id, 'tokens.token': token });
+    const user = await User.findById(decoded.user.id);
 
     if (!user) {
       throw new Error();
     }
 
-    // Send back the user object (excluding password and tokens)
-    res.json({ user });
+    // Send back the user object (excluding password)
+    const userObject = user.toObject();
+    delete userObject.password;
+    res.json({ user: userObject });
 
   } catch (error) {
     console.error('Token Verification Error:', error);
@@ -138,30 +139,9 @@ router.get('/verify', async (req, res) => {
 
 // Logout User (Protected Route Example)
 router.post('/logout', async (req, res) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
-  }
-
-  try {
-     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-     const user = await User.findById(decoded.user.id);
-
-     if (!user) {
-         throw new Error();
-     }
-
-    // Remove the current token from the user's tokens array
-    user.tokens = user.tokens.filter((t) => t.token !== token);
-    await user.save();
-
-    res.json({ message: 'Logged out successfully' });
-
-  } catch (error) {
-    console.error('Logout Error:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
+  // Stateless logout - just return success
+  // Client should remove the token
+  res.json({ message: 'Logged out successfully' });
 });
 
 export default router; 

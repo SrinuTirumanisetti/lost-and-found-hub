@@ -10,8 +10,8 @@ const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret');
-    // Find the user by ID and check if the token is in their tokens array
-    const user = await User.findOne({ _id: decoded.user.id, 'tokens.token': token }).select('-password -tokens'); // Exclude password and tokens
+    // Find the user by ID
+    const user = await User.findOne({ _id: decoded.user.id }).select('-password');
 
      if (!user) {
          throw new Error();

@@ -72,7 +72,7 @@ router.get('/profile', auth, async (req, res) => {
   try {
     // req.user is populated by the auth middleware and contains the user object
     // We can directly send the user object, excluding sensitive fields
-    const userProfile = await User.findById(req.user._id).select('-password -tokens');
+    const userProfile = await User.findById(req.user._id).select('-password');
     if (!userProfile) {
       return res.status(404).json({ message: 'User not found' });
     }
