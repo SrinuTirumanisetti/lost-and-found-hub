@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-// import connectDB from '@/lib/db'; // Removed
-// import User from '@/models/User'; // Removed
 
 const AuthContext = createContext(null);
 
@@ -79,7 +77,6 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (userData) => {
     try {
-      // await connectDB(); // Removed
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
